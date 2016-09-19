@@ -1,16 +1,18 @@
 #!/usr/bin/python
 from tkinter import *
 from tkinter import filedialog
+import PIL.Image
 
 class gui_object:
     def __init__(self):
 # All other 'global variabels' are initialized in the constructor.
         self.root = Tk()
+        self.default_image = None
         self.from_Base_File = IntVar()
         self.inpath  = StringVar()
         self.outpath = StringVar()
+        self.options = Frame(self.root).grid(row=1, column=4)
         self.__create_GUI()
-        self.options=Frame(self.root).grid(row=1, column=4)
 
 # I'm assuming this is to pull in files from a directory
     def __browsein(self):
@@ -29,20 +31,23 @@ class gui_object:
         self.__create_graphic()
 
         #what do these two do vvv ??
-        self.root.after(10, root.update_idletasks())
+        self.root.after(10, self.root.update_idletasks())
         self.root.mainloop()
 
     def __create_graphic(self):
         # Hm, seems like we need to self-reference a dummy eye image in our
         # resources folder. right now it's relative to your computer's filesystem
-        image = PhotoImage(file="/Users/sean/Documents/Contact GUI/dot.gif")
-        dotimage = Label(root, image=image, height=210, width=240)
-        dotimage.image = image
-        dotimage.grid(row=1,column=0,columnspan=2, padx=(10,5))
-        image2 = PhotoImage(file="/Users/sean/Documents/Contact GUI/dot.gif")
-        dotimage2 = Label(root, image=image, height=210, width=240)
-        dotimage2.image = image
-        dotimage2.grid(row=1,column=2,columnspan=2, padx=(5,10))
+        if self.default_image is None:
+            canvass1 = Canvas(self.root, width=210, height=240)
+            canvass1.grid(row=1,column=0,columnspan=2, padx=(10,5))
+            canvass2 = Canvas(self.root, width=210, height=240)
+            canvass2.grid(row=1,column=2,columnspan=2, padx=(5,10))
+        else:
+            canvass1 = Canvas(self.root, width=210, height=240)
+            canvass1.grid(row=1,column=0,columnspan=2, padx=(10,5))
+            canvass2 = Canvas(self.root, width=210, height=240)
+            canvass2.grid(row=1,column=2,columnspan=2, padx=(5,10))
+
 
     def __create_buttons(self):
         Radiobutton(self.options, text='From base file', variable = self.from_Base_File, value=1).grid(row=2, sticky='w')
