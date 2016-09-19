@@ -11,7 +11,8 @@ class gui_object:
         self.from_Base_File = IntVar()
         self.inpath  = StringVar()
         self.outpath = StringVar()
-        self.options = Frame(self.root).grid(row=1, column=4)
+        self.options = Frame(self.root)
+        self.options.grid(row=1, column=4)
         self.__create_GUI()
 
 # I'm assuming this is to pull in files from a directory
