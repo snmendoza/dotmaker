@@ -2,23 +2,32 @@
 from tkinter import *
 from tkinter import filedialog
 import PIL.Image
+from containers import image_vars
 
 class gui_object:
-    def __init__(self):
+    def __init__(self,var_container):
 # All other 'global variabels' are initialized in the constructor.
+        self.var_cont = var_container
         self.root = Tk()
-        self.default_image = None
         self.from_Base_File = IntVar()
-        self.inpath  = StringVar()
-        self.outpath = StringVar()
+        self.from_Base_File = 0
+        self.inpath  = ""
+        self.outpath = ""
         self.options = Frame(self.root)
         self.options.grid(row=1, column=4)
         self.__create_GUI()
+
+    def __edit_image_vars(self):
+        if self.from_Base_file == 0:
+            self.var_cont.set_image_file(self.inPath)
+        else:
+            self.var_cont.set_image_file(None)
 
 # I'm assuming this is to pull in files from a directory
     def __browsein(self):
         I = filedialog.askdirectory(parent=self.root, initialdir='~/')
         self.inpath.set(I)
+        self.__edit_image_vars()
 
 # I'm assuming this is to save files in a directory
     def __browseout(self):
@@ -36,9 +45,8 @@ class gui_object:
         self.root.mainloop()
 
     def __create_graphic(self):
-        # Hm, seems like we need to self-reference a dummy eye image in our
-        # resources folder. right now it's relative to your computer's filesystem
-        if self.default_image is None:
+
+        if self.var_cont.get_image_file() is None:
             canvass1 = Canvas(self.root, width=210, height=240)
             canvass1.grid(row=1,column=0,columnspan=2, padx=(10,5))
             canvass2 = Canvas(self.root, width=210, height=240)
@@ -52,7 +60,7 @@ class gui_object:
 
     def __create_buttons(self):
         Radiobutton(self.options, text='From base file', variable = self.from_Base_File, value=1).grid(row=2, sticky='w')
-        Radiobutton(self.options, text='Generated', variable = self.from_Base_File, value=2).grid(row=3, sticky='w')
+        Radiobutton(self.options, text='Generated', variable = self.from_Base_File, value=0).grid(row=3, sticky='w')
         b = Button(self.root, text=" Browse ", command=self.__browsein)
         b.grid(row=3, column=3,sticky='e', padx=20)
         b1 = Button(self.root, text=" Browse ", command=self.__browseout)
