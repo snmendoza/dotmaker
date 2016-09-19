@@ -52,9 +52,9 @@ class gui_object:
     def __create_buttons(self):
         Radiobutton(self.options, text='From base file', variable = self.from_Base_File, value=1).grid(row=2, sticky='w')
         Radiobutton(self.options, text='Generated', variable = self.from_Base_File, value=2).grid(row=3, sticky='w')
-        b = Button(self.root, text=" Browse ", command=self.__browsein())
+        b = Button(self.root, text=" Browse ", command=self.__browsein)
         b.grid(row=3, column=3,sticky='e', padx=20)
-        b1 = Button(self.root, text=" Browse ", command=self.__browseout())
+        b1 = Button(self.root, text=" Browse ", command=self.__browseout)
         b1.grid(row=4, column=3, sticky='e', padx=20)
         Button(self.root, text=" Generate ", padx=5, pady=5).grid(row=3, column=4, rowspan=2)
 
