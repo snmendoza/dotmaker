@@ -7,5 +7,4 @@ def main():
     var_container = image_vars()
     gui = gui_object(var_container)
 
-
 main()

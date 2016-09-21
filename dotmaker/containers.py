@@ -1,14 +1,14 @@
-
+from tkinter import *
 import sys
 import os.path
 
 class image_vars:
     def __init__(self):
-        self.dimensions = (100,100)
-        self.is_positive = True
-        self.dots_per_cm = 1000
-        self.separation = 200
-        self.radius = 70
+        self.height=100
+        self.is_positive=True
+        self.dots_per_cm=1000
+        self.separation=200
+        self.radius=70
         self.image_file = None
 
     def set_image_file(self,imgFile):
