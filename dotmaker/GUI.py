@@ -5,27 +5,34 @@ from PIL import ImageTk, Image
 
 class gui_object:
     def __init__(self, var):
-# All other 'global variabels' are initialized in the constructor.
+        # All other 'global variabels' are initialized in the constructor.
         self.root = Tk()
-
 
         ###setup variables as tk var, set value
         self.var = var
-        self.var.width = IntVar()
-        self.var.width.set(100)
-        self.var.height = IntVar()
-        self.var.height.set(100)
-        self.var.is_positive = BooleanVar()
-        self.var.is_positive.set(True)
-        self.var.dots_per_cm = IntVar()
-        self.var.dots_per_cm.set(1000)
-        self.var.separation = IntVar()
-        self.var.separation.set(200)
-        self.var.radius = IntVar()
-        self.var.radius.set(70)
-        self.var.image_file = None
-        self.var.width = IntVar()
-        self.var.width.set(100)
+
+        x       = IntVar()
+        y       = IntVar()
+        pos     = BooleanVar()
+        dpcm    = IntVar()
+        sep     = IntVar()
+        re      = IntVar()
+
+        x       = 100
+        y       = 100
+        pos     = True
+        dpcm    = 1000
+        sep     = 200
+        r       = 70
+
+        dim = []
+        dim.append(x)
+        dim.append(y)
+        self.var.set_dimensions(dim)
+        self.var.set_separation(sep)
+        self.var.set_radius(r)
+        self.var.set_positive(pos)
+        self.var.set_dots_per_cm(dpcm)
         ###
 
         self.from_Base_File = BooleanVar()
@@ -38,7 +45,14 @@ class gui_object:
         self.canvass2 = Canvas(self.root, width=240, height=240, bg='gray')
         self.__create_GUI()
 
-
+    def __generate_image(self):
+        imageGenerator = png_maker(self.var)
+        pngObject = imageGenerator.createpng()
+        ######################################
+        ### pngOBJ is a PNG OBJ!!!!     ######
+        ######################################
+        ### put it into the canvas!     ######
+        ######################################
 # Generates user prompt for input file directory
     def __browsein(self):
         """get file location string, display string, open image, make
@@ -79,7 +93,7 @@ class gui_object:
         b.grid(row=3, column=3,sticky='e', padx=20)
         b1 = Button(self.root, text=" Browse ", command=self.__browseout)
         b1.grid(row=4, column=3, sticky='e', padx=20)
-        Button(self.root, text="Generate", anchor='n').grid(row=3, column=4, rowspan=2, columnspan=4)
+        Button(self.root, text="Generate", anchor='n',command = self.__generate_image).grid(row=3, column=4, rowspan=2, columnspan=4)
         Radiobutton(self.options, text="Positive Print", variable=self.var.is_positive, value=True, font=("Helvetica", 12)).grid(row=7, columnspan=2, sticky='w')
         Radiobutton(self.options, text="Negative Print", variable=self.var.is_positive, value=False, font=("Helvetica", 12)).grid(row=7, column=2, columnspan=2, sticky='w')
 
@@ -92,14 +106,19 @@ class gui_object:
         Label(self.options, text="", font=("Helvetica", 8)).grid(row=4)
         Label(self.options, text="Options", font=("Helvetica", 14)).grid(row=5, columnspan=4, pady=(0,10))
         Label(self.options, text="  Dimensions:", font=("Helvetica", 12)).grid(row=6, sticky='w', columnspan=2)
-        Entry(self.options, font=("Helvetica", 11), width=5, textvariable=self.var.width).grid(row=6, column=2, sticky='w')
-        Entry(self.options, font=("Helvetica", 11), width=5,textvariable=self.var.height).grid(row=6, column=3, sticky='w')
+        Entry(self.options, font=("Helvetica", 11), width=5, \
+        textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=2, sticky='w')
+        Entry(self.options, font=("Helvetica", 11), width=5, \
+        textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=3, sticky='w')
         Label(self.options, text="   DPI:",font=("Helvetica", 11)).grid(row=8, sticky='w')
         Label(self.options, text="   Dot Separation:",font=("Helvetica", 11)).grid(row=9, sticky='w')
         Label(self.options, text="   Dot Radius:",font=("Helvetica", 11)).grid(row=10, sticky='w')
-        Entry(self.options, font=("Helvetica", 11),width=14, textvariable=self.var.dots_per_cm).grid(row=8,column=2,columnspan=2, sticky='w')
-        Entry(self.options, font=("Helvetica", 11), width=14, textvariable=self.var.separation).grid(row=9, column=2,columnspan=2,sticky='w')
-        Entry(self.options, font=("Helvetica", 11), width=14, textvariable=self.var.radius).grid(row=10,column=2, columnspan=2,sticky='w')
+        Entry(self.options, font=("Helvetica", 11),width=14, \
+        textvariable=self.var.dots_per_cm).grid(row=8,column=2,columnspan=2, sticky='w')
+        Entry(self.options, font=("Helvetica", 11), width=14, \
+        textvariable=self.var.separation).grid(row=9, column=2,columnspan=2,sticky='w')
+        Entry(self.options, font=("Helvetica", 11), width=14, \
+        textvariable=self.var.radius).grid(row=10,column=2, columnspan=2,sticky='w')
 
         Label(self.root, text="Input File Path:").grid(row=3, column=0, sticky='W')
         Label(self.root, text="Output File Path:").grid(row=4, column=0, sticky='W')
