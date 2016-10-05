@@ -2,6 +2,8 @@
 from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
+from png_interface import png_maker
+import pint
 
 class gui_object:
     def __init__(self, var):
@@ -10,29 +12,39 @@ class gui_object:
 
         ###setup variables as tk var, set value
         self.var = var
+        self.ureg = pint.UnitRegistry()
 
         x       = IntVar()
         y       = IntVar()
         pos     = BooleanVar()
         dpcm    = IntVar()
-        sep     = IntVar()
-        re      = IntVar()
+        sep     = StringVar()
+        re      = StringVar()
+
 
         x       = 100
         y       = 100
         pos     = True
         dpcm    = 1000
-        sep     = 200
-        r       = 70
+        sep     = '200'
+        r       = '70'
 
         dim = []
         dim.append(x)
         dim.append(y)
+        self.resep_new_units = StringVar()
+        self.resep_new_units.set('mm')
+        self.resep_old_units = StringVar()
+        self.resep_old_units.set('mm')
         self.var.set_dimensions(dim)
         self.var.set_separation(sep)
         self.var.set_radius(r)
         self.var.set_positive(pos)
         self.var.set_dots_per_cm(dpcm)
+        self.radius = StringVar()#####!!!!!! The entries with radius and separation NEED to be tkinter variables in order for them to be automatically updated.
+        self.separation = StringVar()# !!!!! I really don't know how we can satisfy both this, and the fact that they are from the other class.
+        self.radius.set('0.0')
+        self.separation.set('0.0')
         ###
 
         self.from_Base_File = BooleanVar()
@@ -45,9 +57,16 @@ class gui_object:
         self.canvass2 = Canvas(self.root, width=240, height=240, bg='gray')
         self.__create_GUI()
 
+    def _unit_update(self, dummy):
+        """update radius and separation values based on the chosen unit"""
+            self.radius.set(str(self.ureg(self.radius.get()+self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
+            self.separation.set(str(self.ureg(self.separation.get()+self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
+            self.resep_old_units.set(self.resep_new_units.get())
+
     def __generate_image(self):
         imageGenerator = png_maker(self.var)
         pngObject = imageGenerator.createpng()
+        draw_canvas(pngObject)
         ######################################
         ### pngOBJ is a PNG OBJ!!!!     ######
         ######################################
@@ -60,9 +79,14 @@ class gui_object:
         I = str(filedialog.askopenfilename())
         self.inpath.set(I)
         im2 = Image.open(I)
-        im1 = im2.resize((240,240), Image.ANTIALIAS)
+        self._draw_canvas(im2)
+
+
+    def _draw_canvas(self, png):
+        """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
+        im1 = png.resize((240,240), Image.ANTIALIAS)
         self.canvass1.image = ImageTk.PhotoImage(im1)
-        self.canvass2.image = ImageTk.PhotoImage(im2)
+        self.canvass2.image = ImageTk.PhotoImage(png)
         self.canvass1.create_image((120,120), image=self.canvass1.image)
         self.canvass2.create_image(120,120, image=self.canvass2.image)
 
@@ -110,15 +134,16 @@ class gui_object:
         textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=3, sticky='w')
-        Label(self.options, text="   DPI:",font=("Helvetica", 11)).grid(row=8, sticky='w')
+        Label(self.options, text="   Dot Density:",font=("Helvetica", 11)).grid(row=8, sticky='w')
         Label(self.options, text="   Dot Separation:",font=("Helvetica", 11)).grid(row=9, sticky='w')
         Label(self.options, text="   Dot Radius:",font=("Helvetica", 11)).grid(row=10, sticky='w')
-        Entry(self.options, font=("Helvetica", 11),width=14, \
+        Entry(self.options, font=("Helvetica", 11),width=5, \
         textvariable=self.var.dots_per_cm).grid(row=8,column=2,columnspan=2, sticky='w')
-        Entry(self.options, font=("Helvetica", 11), width=14, \
-        textvariable=self.var.separation).grid(row=9, column=2,columnspan=2,sticky='w')
-        Entry(self.options, font=("Helvetica", 11), width=14, \
-        textvariable=self.var.radius).grid(row=10,column=2, columnspan=2,sticky='w')
+        Entry(self.options, font=("Helvetica", 11), width=5, \
+        textvariable=self.separation).grid(row=9, column=2,sticky='w')
+        OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self._unit_update).grid(row=9, column=3,rowspan=2)
+        Entry(self.options, font=("Helvetica", 11), width=5, \
+        textvariable=self.radius).grid(row=10,column=2, columnspan=2,sticky='w')
 
         Label(self.root, text="Input File Path:").grid(row=3, column=0, sticky='W')
         Label(self.root, text="Output File Path:").grid(row=4, column=0, sticky='W')
