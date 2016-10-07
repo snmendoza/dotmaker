@@ -13,9 +13,18 @@ class image_vars:
         self.dimensions = [100,100]
         self.image_file = None
 
+    def debug(self):
+        print("conversionfactor" + str(self.conversionFactor))
+        print("is_positive" + str(self.is_positive))
+        print("dots_per_cm" + str(self.dots_per_cm))
+        print("separation" + str(self.separation))
+        print("radius" + str(self.radius))
+        print("dimensions" + str(self.dimensions))
+        print("image file" + str(self.image_file))
     #sets the input file path. imgFile input is path
     def set_image_file(self,imgFile):
         msg =  None
+        imgFile = str(imgFile)
         if imgFile is None:
             self.image_file = None
 

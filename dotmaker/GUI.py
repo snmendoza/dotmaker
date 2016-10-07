@@ -2,7 +2,7 @@
 from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
-
+from png_interface import png_maker
 class gui_object:
     def __init__(self, var):
         # All other 'global variabels' are initialized in the constructor.
@@ -46,6 +46,13 @@ class gui_object:
         self.__create_GUI()
 
     def __generate_image(self):
+
+        if self.from_Base_File:
+            self.var.set_image_file(self.inpath)
+
+        else:
+            self.var.set_image_file(None)
+
         imageGenerator = png_maker(self.var)
         pngObject = imageGenerator.createpng()
         ######################################
@@ -109,7 +116,7 @@ class gui_object:
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=3, sticky='w')
+        textvariable=self.var.get_height_pixels()/(self.var.dots_per_cm)).grid(row=6, column=3, sticky='w')
         Label(self.options, text="   DPI:",font=("Helvetica", 11)).grid(row=8, sticky='w')
         Label(self.options, text="   Dot Separation:",font=("Helvetica", 11)).grid(row=9, sticky='w')
         Label(self.options, text="   Dot Radius:",font=("Helvetica", 11)).grid(row=10, sticky='w')

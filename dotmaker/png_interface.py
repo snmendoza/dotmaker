@@ -8,33 +8,37 @@ from copy import deepcopy
 
 class png_maker:
     def __init__(self, container):
-
+        print("init")
         self.circles        = []
         self.r              = container.get_dot_px_radius()
         self.x              = container.get_width_pixels()
         self.y              = container.get_height_pixels()
         self.positive       = container.get_positive()
         self.separation     = container.get_dot_px_separation()
-
+        print("x:" + str(self.x))
+        print("y:" + str(self.y))
         if container.image_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
 
         else:
-            img = PIL.Image.new('RGBA', (self.x,self.y), 0)
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
 
+        print("done png temp vars")
         self.png_obj = img.load()
+        print("loaded")
 
     def createpng(self):
         '''creates a png with specified holes'''
-
+        print("create png")
         self.__initcircles()
-        self.__initalphamask()
-        return self.__drawcircles()
+        self.__alphamask()
+        self.__drawcircles()
+        return self.png_obj
 
 
     def __initcircles(self):
+        print("init Circles")
         '''creates a short list of cirlce tuple coordinates'''
         # this function creates a list of 2d tuples storing pixels inside a circle
         # to do that, it scans from x = 0 -> circle radius, evaluating if the relation
@@ -48,6 +52,7 @@ class png_maker:
         circleRadius = self.r
         circleRadiusSquared = circleRadius*circleRadius
         for x in range(circleRadius):
+            print("self r" + str(self.r))
             ybase = 0
             while (ybase*ybase + x*x) <= circleRadiusSquared:
                 self.circles.append((x,ybase))
@@ -56,9 +61,10 @@ class png_maker:
                 self.circles.append((x,-ybase))
                 ybase=ybase+1
 
-    def __initalphamask(self):
+    def __alphamask(self):
         ''' Puts an alpha mask of 0 or 1 across the image,
         depending on input parameters'''
+        print("alpha mask Circles")
         pixdata = self.png_obj.pixdata
         for y in range(self.y):
             for x in range(self.x):
@@ -72,6 +78,7 @@ class png_maker:
 
     def __drawcircles(self):
         '''places circles across the alpha layer of the png'''
+        print("draw Circles")
         # This function raster scans across the png image
         # There are two types of scans.
         # One starts at 0,0 and iterates up x and y by iterator 2*separation/sqrt(2)
