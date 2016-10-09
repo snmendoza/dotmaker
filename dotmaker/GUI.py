@@ -98,12 +98,14 @@ class gui_object:
 
 # Creates the GUI we all know and love
     def __create_GUI(self):
+        """organizer method for setting up GUI"""
         self.__create_labels()
         self.__create_buttons()
         self.__create_graphic()
         self.root.mainloop()
 
     def __create_graphic(self):
+        """graphics creation method"""
         # Hm, seems like we need to self-reference a dummy eye image in our
         # resources folder. right now it's relative to your computer's filesystem
         self.canvass1.grid(row=1,column=0,columnspan=2, padx=(10,5))
@@ -111,6 +113,7 @@ class gui_object:
 
 
     def __create_buttons(self):
+        """button creation method"""
         Radiobutton(self.options, text='From base file', variable = self.from_Base_File, value=1).grid(row=2, sticky='w', columnspan=4)
         Radiobutton(self.options, text='Generated', variable = self.from_Base_File, value=2).grid(row=3, sticky='w', columnspan=4)
         b = Button(self.root, text=" Browse ", command=self.__browsein)
@@ -122,6 +125,7 @@ class gui_object:
         Radiobutton(self.options, text="Negative Print", variable=self.var.is_positive, value=False, font=("Helvetica", 12)).grid(row=7, column=2, columnspan=2, sticky='w')
 
     def __create_labels(self):
+        """label creation method"""
         #Main Labels
         Label(self.root, text="Dot Maker", font=("Helvetica", 18)).grid(row=0, columnspan=4)
         Label(self.options, text="  Image Created", font=("Helvetica", 14)).grid(sticky='w', columnspan=4)
