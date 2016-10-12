@@ -16,13 +16,19 @@ class png_maker:
         self.positive       = container.get_positive()
         self.separation     = container.get_dot_px_separation()
 
+        print("initied with:" + str(self.r) + \
+                "\n x:" + str(self.x) + \
+                "\n y:" + str(self.y) + \
+                "\n p:" + str(self.positive) + \
+                "\n s:" + str(self.separation))
         if container.image_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
-
+            print("none")
         else:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
+            print("converted")
 
         self.png_obj = img.load()
 
@@ -30,7 +36,9 @@ class png_maker:
         '''creates a png with specified holes'''
 
         self.__initcircles()
+        print("inited circles")
         self.__initalphamask()
+        print("inited alpha mask")
         return self.__drawcircles()
 
 
@@ -45,7 +53,7 @@ class png_maker:
         # (-x,-y) Quadrant 3.
         # ( x,-y) Quadrant 4.
 
-        circleRadius = self.r
+        circleRadius = int(self.r)
         circleRadiusSquared = circleRadius*circleRadius
         for x in range(circleRadius):
             ybase = 0

@@ -7,7 +7,6 @@ class image_vars:
 
         self.conversionFactor = 1
         self.is_positive=True
-        self.dots_per_cm=1000
         self.separation=200
         self.radius=70
         self.dimensions = [100,100]
@@ -37,17 +36,19 @@ class image_vars:
 
         return msg
 
-    #sets the desired dimensions in cm units
-    def set_dimensions(self,dim):
-        self.dimensions = dim
+    #sets the desired dimensions in px units
+    def set_height(self,dim):
+        """sets the desired dimensions in px units"""
+        self.dimensions[1] = dim
+
+    def set_width(self,dim):
+        """sets the desired dimensions in px units"""
+        self.dimensions[0] = dim
 
     #sets whether a print is positive or negative
     def set_positive(self,pos):
+        """determines what kind of image to produce"""
         self.is_positive = pos
-
-    #sets cm to dots capability of the printer
-    def set_dots_per_cm(self,dpcm):
-        self.dots_per_cm = dpcm
 
     #sets the dot separation width (cen1->cen2) in cm
     def set_separation(self,sep):
@@ -63,11 +64,11 @@ class image_vars:
 
     #gets the print width in pixels
     def get_width_pixels(self):
-        return self.dimensions[0]*(self.dots_per_cm)
+        return self.dimensions[0]
 
     #gets the print height in pixels
     def get_height_pixels(self):
-        return self.dimensions[1]*(self.dots_per_cm)
+        return self.dimensions[1]
 
     #returns whether the print should be positive or not
     def get_positive(self):
@@ -75,8 +76,8 @@ class image_vars:
 
     #gets the cirlce/dot separation in px
     def get_dot_px_separation(self):
-        return self.separation*(self.dots_per_cm)
+        return self.separation
 
     #gets the cirlce/dot radius in px
     def get_dot_px_radius(self):
-        return self.radius*(self.dots_per_cm)
+        return self.radius

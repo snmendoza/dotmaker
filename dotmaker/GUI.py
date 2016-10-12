@@ -13,34 +13,11 @@ class gui_object:
         ###setup variables as tk var, set value
         self.var = var
         self.ureg = pint.UnitRegistry()
-
-        x       = IntVar()
-        y       = IntVar()
-        pos     = BooleanVar()
-        dpcm    = IntVar()
-        sep     = StringVar()
-        re      = StringVar()
-
-
-        x       = 100
-        y       = 100
-        pos     = True
-        dpcm    = 1000
-        sep     = '200'
-        r       = '70'
-
-        dim = []
-        dim.append(x)
-        dim.append(y)
+        self.dpcm    = 1000
         self.resep_new_units = StringVar()
         self.resep_new_units.set('mm')
         self.resep_old_units = StringVar()
         self.resep_old_units.set('mm')
-        self.var.set_dimensions(dim)
-        self.var.set_separation(sep)
-        self.var.set_radius(r)
-        self.var.set_positive(pos)
-        self.var.set_dots_per_cm(dpcm)
         self.radius = StringVar()#####!!!!!! The entries with radius and separation NEED to be tkinter variables in order for them to be automatically updated.
         self.separation = StringVar()# !!!!! I really don't know how we can satisfy both this, and the fact that they are from the other class.
         self.radius.set('0.0')
@@ -59,11 +36,24 @@ class gui_object:
 
     def _unit_update(self, dummy):
         """update radius and separation values based on the chosen unit"""
-            self.radius.set(str(self.ureg(self.radius.get()+self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
-            self.separation.set(str(self.ureg(self.separation.get()+self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
-            self.resep_old_units.set(self.resep_new_units.get())
+        self.radius.set(str(self.ureg(self.radius.get() + \
+        self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
+        self.separation.set(str(self.ureg(self.separation.get()+ \
+        self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
+        self.resep_old_units.set(self.resep_new_units.get())
 
     def __generate_image(self):
+        """method that does everything needed to actually create the png"""
+
+        # make sure all the var.set methods are returing the actual pixel values.
+        # remember, var should only be given dimensions in pixels
+        self.var.set_height(1000)
+        self.var.set_width(1000)
+        self.var.set_positive(True)
+        self.var.set_separation(float(self.separation.get()))
+        self.var.set_radius(float(self.radius.get()))
+        self.var.set_separation(float(self.separation.get()))
+
         imageGenerator = png_maker(self.var)
         pngObject = imageGenerator.createpng()
         draw_canvas(pngObject)
@@ -135,14 +125,14 @@ class gui_object:
         Label(self.options, text="Options", font=("Helvetica", 14)).grid(row=5, columnspan=4, pady=(0,10))
         Label(self.options, text="  Dimensions:", font=("Helvetica", 12)).grid(row=6, sticky='w', columnspan=2)
         Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=2, sticky='w')
+        textvariable=self.var.get_height_pixels()).grid(row=6, column=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.var.get_width_pixels()/(self.var.dots_per_cm)).grid(row=6, column=3, sticky='w')
+        textvariable=self.var.get_width_pixels()).grid(row=6, column=3, sticky='w')
         Label(self.options, text="   Dot Density:",font=("Helvetica", 11)).grid(row=8, sticky='w')
         Label(self.options, text="   Dot Separation:",font=("Helvetica", 11)).grid(row=9, sticky='w')
         Label(self.options, text="   Dot Radius:",font=("Helvetica", 11)).grid(row=10, sticky='w')
         Entry(self.options, font=("Helvetica", 11),width=5, \
-        textvariable=self.var.dots_per_cm).grid(row=8,column=2,columnspan=2, sticky='w')
+        textvariable=self.dpcm).grid(row=8,column=2,columnspan=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.separation).grid(row=9, column=2,sticky='w')
         OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self._unit_update).grid(row=9, column=3,rowspan=2)
