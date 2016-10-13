@@ -6,13 +6,13 @@ from png_interface import png_maker
 import pint
 
 class gui_object:
-    def __init__(self, var):
+    def __init__(self):
         # All other 'global variabels' are initialized in the constructor.
         self.root = Tk()
 
         ###setup variables as tk var, set value
-        self.var = var
         self.ureg = pint.UnitRegistry()
+        self.is_positive = BooleanVar()
         self.dpcm    = 1000
         self.resep_new_units = StringVar()
         self.resep_new_units.set('mm')
@@ -47,14 +47,19 @@ class gui_object:
 
         # make sure all the var.set methods are returing the actual pixel values.
         # remember, var should only be given dimensions in pixels
-        self.var.set_height(1000)
-        self.var.set_width(1000)
-        self.var.set_positive(True)
-        self.var.set_separation(float(self.separation.get()))
-        self.var.set_radius(float(self.radius.get()))
-        self.var.set_separation(float(self.separation.get()))
+        var_container = image_vars()
+        var_container.set_height(1000)
+        var_container.set_width(1000)
+        var_container.set_separation(int(self.separation.get()))
+        var_container.set_radius(int(self.radius.get()))
+        var_container.set_positive(self.is_positive)
 
-        imageGenerator = png_maker(self.var)
+        if self.from_Base_File:
+            var_container.set_image_file(None)
+        else:
+            var_container.set_image_file(self.inpath)
+
+        imageGenerator = png_maker(var_container)
         pngObject = imageGenerator.createpng()
         draw_canvas(pngObject)
         ######################################
@@ -111,8 +116,8 @@ class gui_object:
         b1 = Button(self.root, text=" Browse ", command=self.__browseout)
         b1.grid(row=4, column=3, sticky='e', padx=20)
         Button(self.root, text="Generate", anchor='n',command = self.__generate_image).grid(row=3, column=4, rowspan=2, columnspan=4)
-        Radiobutton(self.options, text="Positive Print", variable=self.var.is_positive, value=True, font=("Helvetica", 12)).grid(row=7, columnspan=2, sticky='w')
-        Radiobutton(self.options, text="Negative Print", variable=self.var.is_positive, value=False, font=("Helvetica", 12)).grid(row=7, column=2, columnspan=2, sticky='w')
+        Radiobutton(self.options, text="Positive Print", variable=self.is_positive, value=True, font=("Helvetica", 12)).grid(row=7, columnspan=2, sticky='w')
+        Radiobutton(self.options, text="Negative Print", variable=self.is_positive, value=False, font=("Helvetica", 12)).grid(row=7, column=2, columnspan=2, sticky='w')
 
     def __create_labels(self):
         """label creation method"""

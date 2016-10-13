@@ -4,8 +4,7 @@ from GUI import gui_object
 from containers import image_vars
 
 def main():
-    var_container = image_vars()
-    gui = gui_object(var_container)
+    gui = gui_object()
 
 def __savetofile(self):
 
