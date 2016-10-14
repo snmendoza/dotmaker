@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
 from png_interface import png_maker
+from containers import image_vars
 import pint
 
 class gui_object:
@@ -12,20 +13,37 @@ class gui_object:
 
         ###setup variables as tk var, set value
         self.ureg = pint.UnitRegistry()
+
+        self.width = StringVar()
+        self.width.set("2.0")
+
+        self.height = StringVar()
+        self.height.set("2.0")
+
         self.is_positive = BooleanVar()
-        self.dpcm    = 1000
-        self.resep_new_units = StringVar()
-        self.resep_new_units.set('mm')
-        self.resep_old_units = StringVar()
-        self.resep_old_units.set('mm')
-        self.radius = StringVar()#####!!!!!! The entries with radius and separation NEED to be tkinter variables in order for them to be automatically updated.
-        self.separation = StringVar()# !!!!! I really don't know how we can satisfy both this, and the fact that they are from the other class.
-        self.radius.set('0.0')
-        self.separation.set('0.0')
-        ###
+        self.is_positive.set(True)
+
+        self.dots_per_u = IntVar()
+        self.dots_per_u.set('1000')
+
+        self.dots_per_unit = StringVar()
+        self.dots_per_unit.set('cm')
+
+        self.radius = StringVar()
+        self.radius.set('0.07')
+
+        self.separation = StringVar()
+        self.separation.set('0.2')
 
         self.from_Base_File = BooleanVar()
         self.from_Base_File.set(True)
+
+        self.resep_new_units = StringVar()
+        self.resep_new_units.set('mm')
+
+        self.resep_old_units = StringVar()
+        self.resep_old_units.set('mm')
+
         self.inpath  = StringVar()
         self.outpath = StringVar()
         self.options = Frame(self.root, borderwidth=5)
@@ -38,8 +56,10 @@ class gui_object:
         """update radius and separation values based on the chosen unit"""
         self.radius.set(str(self.ureg(self.radius.get() + \
         self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
+
         self.separation.set(str(self.ureg(self.separation.get()+ \
         self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
+
         self.resep_old_units.set(self.resep_new_units.get())
 
     def __generate_image(self):
@@ -47,12 +67,28 @@ class gui_object:
 
         # make sure all the var.set methods are returing the actual pixel values.
         # remember, var should only be given dimensions in pixels
+        px_cm      = self.ureg(str(self.dots_per_u.get()) + \
+                     self.dots_per_unit.get()).to("cm").magnitude
+        pos        = self.is_positive.get()
+
+        height     = self.ureg(str(self.height.get())   + \
+                     self.dots_per_unit.get()).to("cm").magnitude
+
+        width      = self.ureg(str(self.width.get())     + \
+                     self.dots_per_unit.get()).to("cm").magnitude
+
+        radius     = self.ureg(str(self.radius.get())    + \
+                     self.resep_old_units.get()).to("cm").magnitude
+
+        separation = self.ureg(str(self.separation.get()) + \
+                     self.resep_old_units.get()).to("cm").magnitude
+
         var_container = image_vars()
-        var_container.set_height(1000)
-        var_container.set_width(1000)
-        var_container.set_separation(int(self.separation.get()))
-        var_container.set_radius(int(self.radius.get()))
-        var_container.set_positive(self.is_positive)
+        var_container.set_height(       int(float(height*px_cm)))
+        var_container.set_width(        int(float(width*px_cm)))
+        var_container.set_separation(   int(float(separation*px_cm)))
+        var_container.set_radius(       int(float(radius*px_cm)))
+        var_container.set_positive(pos)
 
         if self.from_Base_File:
             var_container.set_image_file(None)
@@ -67,7 +103,7 @@ class gui_object:
         ######################################
         ### put it into the canvas!     ######
         ######################################
-# Generates user prompt for input file directory
+        # Generates user prompt for input file directory
     def __browsein(self):
         """get file location string, display string, open image, make
         make resized image, display both, save both for future ref"""
@@ -130,14 +166,14 @@ class gui_object:
         Label(self.options, text="Options", font=("Helvetica", 14)).grid(row=5, columnspan=4, pady=(0,10))
         Label(self.options, text="  Dimensions:", font=("Helvetica", 12)).grid(row=6, sticky='w', columnspan=2)
         Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.var.get_height_pixels()).grid(row=6, column=2, sticky='w')
+        textvariable=self.height).grid(row=6, column=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.var.get_width_pixels()).grid(row=6, column=3, sticky='w')
+        textvariable=self.width).grid(row=6, column=3, sticky='w')
         Label(self.options, text="   Dot Density:",font=("Helvetica", 11)).grid(row=8, sticky='w')
         Label(self.options, text="   Dot Separation:",font=("Helvetica", 11)).grid(row=9, sticky='w')
         Label(self.options, text="   Dot Radius:",font=("Helvetica", 11)).grid(row=10, sticky='w')
         Entry(self.options, font=("Helvetica", 11),width=5, \
-        textvariable=self.dpcm).grid(row=8,column=2,columnspan=2, sticky='w')
+        textvariable=self.dots_per_u).grid(row=8,column=2,columnspan=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.separation).grid(row=9, column=2,sticky='w')
         OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self._unit_update).grid(row=9, column=3,rowspan=2)

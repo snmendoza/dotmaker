@@ -16,7 +16,8 @@ class png_maker:
         self.positive       = container.get_positive()
         self.separation     = container.get_dot_px_separation()
 
-        print("initied with:" + str(self.r) + \
+        print("initied with:" + \
+                "\n r:" + str(self.r) + \
                 "\n x:" + str(self.x) + \
                 "\n y:" + str(self.y) + \
                 "\n p:" + str(self.positive) + \
@@ -29,8 +30,8 @@ class png_maker:
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
             print("converted")
+        self.img = img
 
-        self.png_obj = img.load()
 
     def createpng(self):
         '''creates a png with specified holes'''
@@ -67,7 +68,7 @@ class png_maker:
     def __initalphamask(self):
         ''' Puts an alpha mask of 0 or 1 across the image,
         depending on input parameters'''
-        pixdata = self.png_obj.pixdata
+        pixdata = self.img.load()
         for y in range(self.y):
             for x in range(self.x):
                 if self.positive:
@@ -76,7 +77,7 @@ class png_maker:
                 else:
                     pixdata[x, y] = \
                         (pixdata[x,y][0],pixdata[x,y][1], pixdata[x,y][2], 0)
-        self.png_obj.pixdata = pixdata
+        self.img. = pixdata
 
     def __drawcircles(self):
         '''places circles across the alpha layer of the png'''
