@@ -24,12 +24,10 @@ class png_maker:
                 "\n s:" + str(self.separation))
         if container.image_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
-            print("none")
         else:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
-            print("converted")
         self.img = img
 
 
@@ -40,7 +38,10 @@ class png_maker:
         print("inited circles")
         self.__initalphamask()
         print("inited alpha mask")
-        return self.__drawcircles()
+        self.__drawcircles()
+        print("done drawing")
+
+        return self.img
 
 
     def __initcircles(self):
@@ -69,15 +70,16 @@ class png_maker:
         ''' Puts an alpha mask of 0 or 1 across the image,
         depending on input parameters'''
         pixdata = self.img.load()
+
+        if self.positive:
+            alpha = 0
+        else:
+            alpha = 255
+
         for y in range(self.y):
             for x in range(self.x):
-                if self.positive:
-                    pixdata[x, y] = \
-                        (pixdata[x,y][0],pixdata[x,y][1], pixdata[x,y][2], 255)
-                else:
-                    pixdata[x, y] = \
-                        (pixdata[x,y][0],pixdata[x,y][1], pixdata[x,y][2], 0)
-        self.img. = pixdata
+                pixdata[x, y] = \
+                    (pixdata[x,y][0],pixdata[x,y][1], pixdata[x,y][2], alpha)
 
     def __drawcircles(self):
         '''places circles across the alpha layer of the png'''
@@ -113,7 +115,7 @@ class png_maker:
         else:
             alpha = 0
 
-        pxDat = self.png_obj.pixdata
+        pxDat = self.img.load()
         for x in range(x_f+1):
             for y in range(y_f+1):
                 # Get the list of valid circle points per iterator position
@@ -135,7 +137,6 @@ class png_maker:
                     temppx = pxDat[place[0],place[1]]
                     pxDat[place[0],place[1]] = \
                         (temppx[0],temppx[1],temppx[2],alpha)
-        self.png_obj.pixdata = pxDat
 
     def __getAdjustedPoints(self,centerCoordinate,dimensions):
         '''Adjusts each point within the circle list

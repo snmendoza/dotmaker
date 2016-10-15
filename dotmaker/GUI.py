@@ -52,7 +52,7 @@ class gui_object:
         self.canvass2 = Canvas(self.root, width=240, height=240, bg='gray')
         self.__create_GUI()
 
-    def _unit_update(self, dummy):
+    def __unit_update(self, dummy):
         """update radius and separation values based on the chosen unit"""
         self.radius.set(str(self.ureg(self.radius.get() + \
         self.resep_old_units.get()).to(self.resep_new_units.get()).magnitude))
@@ -97,7 +97,7 @@ class gui_object:
 
         imageGenerator = png_maker(var_container)
         pngObject = imageGenerator.createpng()
-        draw_canvas(pngObject)
+        self.__draw_canvas(pngObject)
         ######################################
         ### pngOBJ is a PNG OBJ!!!!     ######
         ######################################
@@ -113,7 +113,7 @@ class gui_object:
         self._draw_canvas(im2)
 
 
-    def _draw_canvas(self, png):
+    def __draw_canvas(self, png):
         """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
         im1 = png.resize((240,240), Image.ANTIALIAS)
         self.canvass1.image = ImageTk.PhotoImage(im1)
@@ -176,7 +176,7 @@ class gui_object:
         textvariable=self.dots_per_u).grid(row=8,column=2,columnspan=2, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.separation).grid(row=9, column=2,sticky='w')
-        OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self._unit_update).grid(row=9, column=3,rowspan=2)
+        OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self.__unit_update).grid(row=9, column=3,rowspan=2)
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.radius).grid(row=10,column=2, columnspan=2,sticky='w')
 
