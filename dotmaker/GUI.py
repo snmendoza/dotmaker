@@ -10,7 +10,7 @@ class gui_object:
     def __init__(self):
         # All other 'global variabels' are initialized in the constructor.
         self.root = Tk()
-
+        self.root.wm_title("Dot Maker")
         ###setup variables as tk var, set value
         self.ureg = pint.UnitRegistry()
 
@@ -116,6 +116,12 @@ class gui_object:
     def __draw_canvas(self, png):
         """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
         im1 = png.resize((240,240), Image.ANTIALIAS)
+
+        px_cm      = self.ureg(str(self.dots_per_u.get()) + \
+                     self.dots_per_unit.get()).to("cm").magnitude
+        separation = self.ureg(str(self.separation.get()) + \
+                     self.resep_old_units.get()).to("cm").magnitude
+        cropped_dim = 2*int(float(separation.get())*float(px_cm.get()))
         self.canvass1.image = ImageTk.PhotoImage(im1)
         self.canvass2.image = ImageTk.PhotoImage(png)
         self.canvass1.create_image((120,120), image=self.canvass1.image)

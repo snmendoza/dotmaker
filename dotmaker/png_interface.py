@@ -3,25 +3,29 @@ import os.path
 import imghdr
 import PIL.Image
 import math
+import time
 from containers import image_vars
 from copy import deepcopy
+from tkinter import *
 
 class png_maker:
     def __init__(self, container):
-
+        print("main")
+        self.root = Tk()
+        self.root.wm_title("Generation Status")
+        self.var = StringVar()
+        self.var.set("Converting Units")
+        self.w = Frame(self.root,height=25,width=100,bd=4)
+        self.lab = Label(self.w, text="Converting Units",font=("Helvetica", 11))
+        self.lab.pack()
+        self.w.pack()
+        self.root.mainloop()
         self.circles        = []
         self.r              = container.get_dot_px_radius()
         self.x              = container.get_width_pixels()
         self.y              = container.get_height_pixels()
         self.positive       = container.get_positive()
         self.separation     = container.get_dot_px_separation()
-
-        print("initied with:" + \
-                "\n r:" + str(self.r) + \
-                "\n x:" + str(self.x) + \
-                "\n y:" + str(self.y) + \
-                "\n p:" + str(self.positive) + \
-                "\n s:" + str(self.separation))
         if container.image_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
         else:
@@ -29,18 +33,24 @@ class png_maker:
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
         self.img = img
-
+        print("done with main")
 
     def createpng(self):
         '''creates a png with specified holes'''
-
+        print("png")
+        self.var.set("Precomputing Circles")
+        self.root.update_idletasks()
         self.__initcircles()
-        print("inited circles")
+        self.var.set("Setting Alpha Mask")
+        self.root.update_idletasks()
         self.__initalphamask()
-        print("inited alpha mask")
+        self.var.set("Creating PNG image")
+        self.root.update_idletasks()
         self.__drawcircles()
-        print("done drawing")
-
+        self.var.set("PNG created")
+        self.root.update_idletasks()
+        time.sleep(1)
+        self.root.destroy()
         return self.img
 
 
