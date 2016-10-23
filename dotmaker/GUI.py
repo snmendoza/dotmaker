@@ -110,7 +110,7 @@ class gui_object:
         I = str(filedialog.askopenfilename())
         self.inpath.set(I)
         im2 = Image.open(I)
-        self._draw_canvas(im2)
+        self.__draw_canvas(im2)
 
 
     def __draw_canvas(self, png):
@@ -121,7 +121,7 @@ class gui_object:
                      self.dots_per_unit.get()).to("cm").magnitude
         separation = self.ureg(str(self.separation.get()) + \
                      self.resep_old_units.get()).to("cm").magnitude
-        cropped_dim = 2*int(float(separation.get())*float(px_cm.get()))
+        cropped_dim = 2*int(float(separation)*float(px_cm))
         self.canvass1.image = ImageTk.PhotoImage(im1)
         self.canvass2.image = ImageTk.PhotoImage(png)
         self.canvass1.create_image((120,120), image=self.canvass1.image)
