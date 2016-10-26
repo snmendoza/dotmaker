@@ -12,6 +12,7 @@ class gui_object:
         self.root = Tk()
         self.root.wm_title("Dot Maker")
         ###setup variables as tk var, set value
+        #test
         self.ureg = pint.UnitRegistry()
 
         self.width = StringVar()
@@ -44,10 +45,19 @@ class gui_object:
         self.resep_old_units = StringVar()
         self.resep_old_units.set('mm')
 
+        self.dimunits = StringVar()
+        self.dimunits.set('cm')
+
+        self.densityunits = StringVar()
+        self.densityunits.set('cm')
+
         self.inpath  = StringVar()
         self.outpath = StringVar()
         self.options = Frame(self.root, borderwidth=5)
         self.options.grid(row=1, column=4)
+
+        self.dimensionframe = Frame(self.options, borderwidth=5)
+        self.dimensionframe.grid(row=6, columnspan=4)
         self.canvass1 = Canvas(self.root, width=240, height=240, bg='gray')
         self.canvass2 = Canvas(self.root, width=240, height=240, bg='gray')
         self.__create_GUI()
@@ -170,16 +180,21 @@ class gui_object:
         #Sub Labels
         Label(self.options, text="", font=("Helvetica", 8)).grid(row=4)
         Label(self.options, text="Options", font=("Helvetica", 14)).grid(row=5, columnspan=4, pady=(0,10))
-        Label(self.options, text="  Dimensions:", font=("Helvetica", 12)).grid(row=6, sticky='w', columnspan=2)
-        Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.height).grid(row=6, column=2, sticky='w')
-        Entry(self.options, font=("Helvetica", 11), width=5, \
-        textvariable=self.width).grid(row=6, column=3, sticky='w')
+        Label(self.dimensionframe, text="Dimensions in", font=("Helvetica", 12)).grid(row=0,sticky='e', columnspan=2)
+        OptionMenu(self.dimensionframe, self.dimunits, *[chr(956)+'m','mm','cm','in'], command=None).grid(row=0, column=2,columnspan=2)
+        Label(self.dimensionframe, text="w:", font=("Helvetica", 12)).grid(row=1, column=0, sticky='w')
+        Entry(self.dimensionframe, font=("Helvetica", 11), width=5, \
+        textvariable=self.height).grid(row=1, column=1, sticky='w')
+        Label(self.dimensionframe, text=" h:", font=("Helvetica", 12)).grid(row=1, column=2, sticky='w')
+        Entry(self.dimensionframe, font=("Helvetica", 11), width=5, \
+        textvariable=self.width).grid(row=1, column=3, sticky='w')
         Label(self.options, text="   Dot Density:",font=("Helvetica", 11)).grid(row=8, sticky='w')
         Label(self.options, text="   Dot Separation:",font=("Helvetica", 11)).grid(row=9, sticky='w')
         Label(self.options, text="   Dot Radius:",font=("Helvetica", 11)).grid(row=10, sticky='w')
         Entry(self.options, font=("Helvetica", 11),width=5, \
         textvariable=self.dots_per_u).grid(row=8,column=2,columnspan=2, sticky='w')
+        Label(self.options, text="px per",font=("Helvetica", 11)).grid(row=8,column=3, sticky='w')
+        OptionMenu(self.options, self.densityunits, *[chr(956)+'m','mm','cm','in']).grid(row=8, column=4, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.separation).grid(row=9, column=2,sticky='w')
         OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self.__unit_update).grid(row=9, column=3,rowspan=2)
