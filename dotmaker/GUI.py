@@ -48,9 +48,6 @@ class gui_object:
         self.dimunits = StringVar()
         self.dimunits.set('cm')
 
-        self.densityunits = StringVar()
-        self.densityunits.set('cm')
-
         self.inpath  = StringVar()
         self.outpath = StringVar()
         self.options = Frame(self.root, borderwidth=5)
@@ -194,7 +191,7 @@ class gui_object:
         Entry(self.options, font=("Helvetica", 11),width=5, \
         textvariable=self.dots_per_u).grid(row=8,column=2,columnspan=2, sticky='w')
         Label(self.options, text="px per",font=("Helvetica", 11)).grid(row=8,column=3, sticky='w')
-        OptionMenu(self.options, self.densityunits, *[chr(956)+'m','mm','cm','in']).grid(row=8, column=4, sticky='w')
+        OptionMenu(self.options, self.dots_per_unit, *[chr(956)+'m','mm','cm','in']).grid(row=8, column=4, sticky='w')
         Entry(self.options, font=("Helvetica", 11), width=5, \
         textvariable=self.separation).grid(row=9, column=2,sticky='w')
         OptionMenu(self.options, self.resep_new_units, *[chr(956)+'m','mm','cm','in'], command=self.__unit_update).grid(row=9, column=3,rowspan=2)
