@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import tkinter as tk
+import tkinter.filedialog
 from PIL import ImageTk, Image
 import pint
 import model as model
@@ -59,6 +60,8 @@ class base_generation_frame(tk.Frame):
         #labels:
         self.width_lab  = tk.Label(self, text="Image width:",font=self.label_font)
         self.height_lab = tk.Label(self, text="Image height:",font=self.label_font)
+        self.input_lab = tk.Label(self, text="Input file:", font=self.label_font)
+        self.input_file_lab = tk.Label(self, textvariable=self.inpath, font=self.label_font, width=15, anchor='e', justify='right')
         #entry:
         self.width_ent  = tk.Entry(self, textvariable=self.width, font=self.entry_font,width=5)
         self.height_ent = tk.Entry(self, textvariable=self.height,font=self.entry_font,width=5)
@@ -68,6 +71,8 @@ class base_generation_frame(tk.Frame):
         #option menu:
         self.dot_menu   = tk.OptionMenu(self, self.temp_unit, \
                     *[chr(956)+'m','mm','cm','in'], command=self.__dim_update)
+        #buttons
+        self.browse_in_butt = tk.Button(self, text='Browse', font=self.label_font, command=self.__browsein)
 
 
     def __align_buttons(self):
@@ -79,16 +84,21 @@ class base_generation_frame(tk.Frame):
         self.grid_rowconfigure(1,minsize=30)
         self.grid_rowconfigure(2,minsize=30)
 
-        self.dot_menu.grid(row=1,column=2,sticky='w')
+        self.dot_menu.grid(row=2,column=2,sticky='w')
 
-        self.width_lab .grid(row=1,column=0,sticky='w')
-        self.height_lab.grid(row=2,column=0,sticky='w')
+        self.width_lab .grid(row=2,column=0,sticky='w')
+        self.height_lab.grid(row=3,column=0,sticky='w')
 
-        self.width_ent.grid(row=1,column=1,sticky='w')
-        self.height_ent.grid(row=2,column=1,sticky='w')
+        self.width_ent.grid(row=2,column=1,sticky='w')
+        self.height_ent.grid(row=3,column=1,sticky='w')
 
-        self.base_but.grid(row=0,column=0,sticky='w')
-        self.gen_but.grid(row=0,column=2,sticky='w')
+        self.base_but.grid(row=1,column=0,sticky='w')
+        self.gen_but.grid(row=1,column=2,sticky='w')
+
+        self.input_lab.grid(row=0, column=0, sticky='w')
+        self.input_file_lab.grid(row=0, column=1, sticky='w')
+
+        self.browse_in_butt.grid(row=0, column=2, sticky='w')
 
 
     def __dim_update(self,update):
@@ -99,7 +109,7 @@ class base_generation_frame(tk.Frame):
     def __browsein(self):
             """get file location string, display string, open image, make
             make resized image, display both, save both for future ref"""
-            I = str(filedialog.askopenfilename())
+            I = str(tk.filedialog.askopenfilename())
             self.inpath.set(I)
             im2 = Image.open(I)
 
