@@ -2,6 +2,13 @@
 import tkinter as tk
 from PIL import ImageTk, Image
 import pint
+import model as model
+
+def convert_unit(ureg,prevnumber=None,prevunit=None,newunit=None):
+    return str(ureg(prevnumber.get() + prevunit.get()).to(newunit).magnitude)
+
+def normalize_unit(ureg,prevnumber=None,prevunit=None):
+    return str(ureg(prevnumber.get() + prevunit.get()).to("cm").magnitude)
 
 class base_generation_frame(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -9,6 +16,22 @@ class base_generation_frame(tk.Frame):
         self.__define_vars()
         self.__define_buttons()
         self.__align_buttons()
+
+
+    def get_var_params(self):
+        height = normalize_unit(ureg,self.height,self.unit)
+        width = normalize_unit(ureg,self.width,self.unit)
+
+        if gen_option ==1:
+            f = None
+        else:
+            f = self.inpath
+
+        cont = model.image_vars()
+        cont.set_height(height)
+        cont.set_width(height)
+        cont.set_image_file(f)
+        return cont
 
     def __define_vars(self):
         self.label_font = ("Helvetica", 11)
@@ -69,15 +92,11 @@ class base_generation_frame(tk.Frame):
 
 
     def __dim_update(self,update):
-        self.height.set(str(self.ureg(self.height.get() + \
-        self.unit.get()).to(update).magnitude))
-
-        self.width.set(str(self.ureg(self.width.get()+ \
-        self.unit.get()).to(update).magnitude))
-
+        self.height.set(convert_unit(self.ureg,self.height,self.unit,update))
+        self.width.set(convert_unit(self.ureg,self.width,self.unit,update))
         self.unit.set(update)
 
-        def __browsein(self):
+    def __browsein(self):
             """get file location string, display string, open image, make
             make resized image, display both, save both for future ref"""
             I = str(filedialog.askopenfilename())
@@ -91,6 +110,27 @@ class circle_param_frame(tk.Frame):
         self.__define_vars()
         self.__define_buttons()
         self.__align_buttons()
+
+    def get_px_conversion(self):
+        return normalize_unit(self.ureg,self.pixels_per_unit_value,\
+            self.pixels_per_unit_unit)
+
+    def get_var_params(self):
+        px_cm = normalize_unit(self.ureg,self.pixels_per_unit_value,\
+            self.pixels_per_unit_unit)
+        separation = normalize_unit(self.ureg,self.separation,self.unit)
+        radius = normalize_unit(self.ureg,self.radius,self.unit)
+
+        s = int(float(separation)*float(px_cm))
+        r = int(float(radius)*float(px_cm))
+
+        img = model.image_vars()
+        img.set_separation(s)
+        img.set_radius(r)
+        img.set_positive(self.pos.get())
+
+        return img
+
 
     def __define_vars(self):
         self.label_font = ("Helvetica", 11)
@@ -164,18 +204,13 @@ class circle_param_frame(tk.Frame):
         self.neg_lab.grid(row=3,column=1,sticky='w')
 
     def __density_update(self,update):
-        self.pixels_per_unit_value.set(str(self.ureg(self.pixels_per_unit_value.get() + \
-        self.pixels_per_unit_unit.get()).to(update).magnitude))
-
+        self.pixels_per_unit_value.set(convert_unit(self.ureg, \
+            self.pixels_per_unit_value,self.pixels_per_unit_unit,update))
         self.pixels_per_unit_unit.set(update)
 
     def __circle_update(self,update):
-        self.radius.set(str(self.ureg(self.radius.get() + \
-        self.unit.get()).to(update).magnitude))
-
-        self.separation.set(str(self.ureg(self.separation.get()+ \
-        self.unit.get()).to(update).magnitude))
-
+        self.radius.set(convert_unit(self.ureg,self.radius,self.unit,update))
+        self.separation.set(convert_unit(self.ureg,self.separation,self.unit,update))
         self.unit.set(update)
 
 class canvass_master(tk.Frame):
@@ -184,6 +219,9 @@ class canvass_master(tk.Frame):
         self.__define_vars()
         self.__define_buttons()
         self.__align_buttons()
+
+    def update_canvass(self,img):
+        pass
 
     def __define_vars(self):
         pass
@@ -240,6 +278,14 @@ class side_frame(tk.Frame):
         self.base_generation_frame.grid(row=0, column=0)
         self.circle_param_frame.grid(row=1,column=0)
 
+    def make_container(self):
+        px_cm = self.circle_param_frame.get_px_conversion()
+        img1 = self.circle_param_frame.get_var_params()
+        img2 = self.base_generation_frame.get_var_params()
+        img1.set_height(int(float(px_cm)*float(img2.get_height())))
+        img1.set_width(int(float(px_cm)*float(img2.get_width())))
+        img1.set_image_file(img2.get_image_file())
+        return img1
 
 class gui_object:
     def __init__(self):
@@ -267,3 +313,9 @@ class gui_object:
         self.canvass_master.grid(row=0, column=0)
         self.bottom_frame.grid(row=1,column=1)
         self.side_frame.grid(row=0,column=1,rowspan=2)
+
+    def __generate(self):
+        container = self.side_frame.make_container()
+        png_obj = model.png_maker(container)
+        img = png_obj.createpng()
+        self.canvass_master.update_canvass(img)

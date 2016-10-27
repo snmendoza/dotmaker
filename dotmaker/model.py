@@ -19,7 +19,6 @@ class png_maker:
         if container.image_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
         else:
-            img = PIL.Image.new('RGBA', (self.x,self.y), 0)
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
         self.img = img
@@ -29,7 +28,6 @@ class png_maker:
         self.__initcircles()
         self.__initalphamask()
         self.__drawcircles()
-        time.sleep(1)
         return self.img
 
 
