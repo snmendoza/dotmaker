@@ -4,29 +4,18 @@ import imghdr
 import PIL.Image
 import math
 import time
-from containers import image_vars
 from copy import deepcopy
 from tkinter import *
 
 class png_maker:
     def __init__(self, container):
-        print("main")
-        self.root = Tk()
-        self.root.wm_title("Generation Status")
-        self.var = StringVar()
-        self.var.set("Converting Units")
-        self.w = Frame(self.root,height=25,width=100,bd=4)
-        self.lab = Label(self.w, text="Converting Units",font=("Helvetica", 11))
-        self.lab.pack()
-        self.w.pack()
         #self.root.mainloop()
         self.circles        = []
-        self.r              = container.get_dot_px_radius()
-        print(self.r)
+        self.r              = container.get_radius()
         self.x              = container.get_width_pixels()
         self.y              = container.get_height_pixels()
         self.positive       = container.get_positive()
-        self.separation     = container.get_dot_px_separation()
+        self.separation     = container.get_separation()
         if container.image_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
         else:
@@ -34,24 +23,13 @@ class png_maker:
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
         self.img = img
-        print("done with main")
 
     def createpng(self):
         '''creates a png with specified holes'''
-        print("png")
-        self.var.set("Precomputing Circles")
-        #self.root.update_idletasks()
         self.__initcircles()
-        self.var.set("Setting Alpha Mask")
-        #self.root.update_idletasks()
         self.__initalphamask()
-        self.var.set("Creating PNG image")
-        #self.root.update_idletasks()
         self.__drawcircles()
-        self.var.set("PNG created")
-        #self.root.update_idletasks()
         time.sleep(1)
-        self.root.destroy()
         return self.img
 
 
@@ -176,3 +154,83 @@ class png_maker:
                     newlist.append((xadj,yadj))
 
         return newlist
+
+class image_vars:
+    def __init__(self):
+
+        self.conversionFactor = 1
+        self.is_positive=True
+        self.separation=200
+        self.radius=70
+        self.dimensions = [100,100]
+        self.image_file = None
+
+    #sets the input file path. imgFile input is path
+    def set_image_file(self,imgFile):
+        msg =  None
+        if imgFile is None:
+            self.image_file = None
+
+        else:
+            if os.path.isfile(imgFile):
+                if os.access(imgFile, os.R_OK):
+                    if imghdr.what(imgFile)=='png':
+                        self.image_file=imgFile
+
+                    else:
+                        msg= "Looks like input file is type " +imghdr.what(self.pngFilePath) \
+                         + "\n Please use input image of type png!"
+
+                else:
+                    msg="Warning! File does not have access permissions"
+
+            else:
+                msg="File seems to be missing! Maybe path is incorrect?"
+
+        return msg
+
+    #sets the desired dimensions in px units
+    def set_height(self,dim):
+        """sets the desired dimensions in px units"""
+        self.dimensions[1] = dim
+
+    def set_width(self,dim):
+        """sets the desired dimensions in px units"""
+        self.dimensions[0] = dim
+
+    #sets whether a print is positive or negative
+    def set_positive(self,pos):
+        """determines what kind of image to produce"""
+        self.is_positive = pos
+
+    #sets the dot separation width (cen1->cen2) in cm
+    def set_separation(self,sep):
+        self.separation = sep
+
+    #sets circle radius in cm
+    def set_radius(self,rad):
+        self.radius = rad
+
+    #gets the img file path
+    def get_image_file(self):
+        return self.image_file
+
+    #gets the print width in pixels
+    def get_width(self):
+        return self.dimensions[0]
+
+    #gets the print height in pixels
+    def get_height(self):
+        return self.dimensions[1]
+
+    #returns whether the print should be positive or not
+    def get_positive(self):
+        return self.is_positive
+
+    #gets the cirlce/dot separation in px
+    def get_separation(self):
+        return self.separation
+
+    #gets the cirlce/dot radius in px
+    def get_radius(self):
+        return self.radius
