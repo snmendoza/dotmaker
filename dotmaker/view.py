@@ -42,7 +42,6 @@ class base_generation_frame(tk.Frame):
         self.ureg = pint.UnitRegistry()
 
         self.inpath  = tk.StringVar()
-        self.outpath = tk.StringVar()
 
         self.unit = tk.StringVar()
         self.unit.set('cm')
@@ -84,7 +83,7 @@ class base_generation_frame(tk.Frame):
         self.grid_rowconfigure(1,minsize=30)
         self.grid_rowconfigure(2,minsize=30)
 
-        self.dot_menu.grid(row=2,column=2,sticky='w')
+        self.dot_menu.grid(row=2,rowspan=2,column=2,sticky='w')
 
         self.width_lab .grid(row=2,column=0,sticky='w')
         self.height_lab.grid(row=3,column=0,sticky='w')
@@ -147,6 +146,8 @@ class circle_param_frame(tk.Frame):
         self.entry_font = ("Helvetica", 11)
         self.ureg = pint.UnitRegistry()
 
+        self.outpath = tk.StringVar()
+
         self.pos = tk.BooleanVar()
         self.pos.set(True)
 
@@ -188,6 +189,9 @@ class circle_param_frame(tk.Frame):
             value=True, font=self.label_font)
         self.neg_lab      = tk.Radiobutton(self, text="Negative Print", variable=self.pos, \
             value=False, font=self.label_font)
+        #buttons:
+        self.generate_button  = tk.Button(self, text="Generate",font=self.label_font)
+        self.save_button  = tk.Button(self, text="Save",command=self.__save_file, font=self.label_font)
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=100)
@@ -207,11 +211,14 @@ class circle_param_frame(tk.Frame):
         self.dot_sep_ent.grid(row=1,column=1,sticky='w')
         self.dot_rad_ent.grid(row=2,column=1,sticky='w')
 
-        self.dot_menu.grid(row=1,column=2,sticky='w')
+        self.dot_menu.grid(row=1,rowspan=2,column=2,sticky='w')
         self.density_menu.grid(row=0,column=2,sticky='w')
 
         self.pos_lab.grid(row=3,column=0,sticky='w')
         self.neg_lab.grid(row=3,column=1,sticky='w')
+
+        self.generate_button.grid(row=4, column=0, columnspan=2, sticky='w')
+        self.save_button.grid(row=4, column=1, columnspan=2, sticky='w')
 
     def __density_update(self,update):
         self.pixels_per_unit_value.set(convert_unit(self.ureg, \
@@ -222,6 +229,9 @@ class circle_param_frame(tk.Frame):
         self.radius.set(convert_unit(self.ureg,self.radius,self.unit,update))
         self.separation.set(convert_unit(self.ureg,self.separation,self.unit,update))
         self.unit.set(update)
+
+    def __save_file(self):
+        self.outpath = tkinter.filedialog.asksaveasfilename()
 
 class canvass_master(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
