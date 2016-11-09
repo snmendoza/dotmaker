@@ -3,33 +3,40 @@ import os.path
 import imghdr
 import PIL.Image
 import math
+import pint
 import time
 from copy import deepcopy
 from tkinter import *
 
 class png_maker:
     def __init__(self, container):
-        #self.root.mainloop()
         self.circles        = []
         self.r              = container.get_radius()
-        self.x              = container.get_width_pixels()
-        self.y              = container.get_height_pixels()
+        self.x              = container.get_width()
+        self.y              = container.get_height()
         self.positive       = container.get_positive()
         self.separation     = container.get_separation()
-        if container.image_file == None:
+        input_file          = container.get_image_file()
+
+        if input_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
         else:
             img = PIL.Image.open(input_file)
             img = img.convert("RGBA")
+            img = img.resize((self.x,self.y))
         self.img = img
+
+    def get_img(self):
+        return self.img
 
     def createpng(self):
         '''creates a png with specified holes'''
         self.__initcircles()
+        print("Circles")
         self.__initalphamask()
+        print("alphamask")
         self.__drawcircles()
-        return self.img
-
+        print("draw circles")
 
     def __initcircles(self):
         '''creates a short list of cirlce tuple coordinates'''
@@ -154,47 +161,48 @@ class png_maker:
         return newlist
 
 class image_vars:
-    def __init__(self):
+    def __init__(self,var_dict):
+        self.dimensions=dict(height=100,width=100)
+        self.is_positive=False
+        self.radius = 1
+        self.separation = 1
+        self.img_file = None
+        self.dict = var_dict
+        self.ureg = pint.UnitRegistry()
+        self.default = dict(height=("2","cm"),\
+                        width=("2","cm"),\
+                        px_cm=("300","cm"),\
+                        input_file=None,\
+                        is_positive=False,\
+                        separation=("0.1","cm"),\
+                        radius=("0.01","cm"))
+        self.__set_values(self.default)
+        if self.dict != None:
+            self.__set_values(self.dict)
 
-        self.conversionFactor = 1
-        self.is_positive=True
-        self.separation=200
-        self.radius=70
-        self.dimensions = [100,100]
-        self.image_file = None
 
+    def __set_values(self,dictionary_input):
+        px_cm_conversion =   int(self.normalize_unit(dictionary_input.get("px_cm")))
+        self.set_height(     float(self.normalize_unit(dictionary_input.get("height")))*px_cm_conversion)
+        self.set_width(      float(self.normalize_unit(dictionary_input.get("width")))*px_cm_conversion)
+        self.set_separation( float(self.normalize_unit(dictionary_input.get("separation")))*px_cm_conversion)
+        self.set_radius(     float(self.normalize_unit(dictionary_input.get("radius")))*px_cm_conversion)
+
+        self.set_image_file( dictionary_input.get("input_file"))
+        self.set_positive(   dictionary_input.get("is_positive"))
+
+    def normalize_unit(self,dict_val):
+        return str(self.ureg(dict_val[0] + dict_val[1]).to("cm").magnitude)
     #sets the input file path. imgFile input is path
-    def set_image_file(self,imgFile):
-        msg =  None
-        if imgFile is None:
-            self.image_file = None
-
-        else:
-            if os.path.isfile(imgFile):
-                if os.access(imgFile, os.R_OK):
-                    if imghdr.what(imgFile)=='png':
-                        self.image_file=imgFile
-
-                    else:
-                        msg= "Looks like input file is type " +imghdr.what(self.pngFilePath) \
-                         + "\n Please use input image of type png!"
-
-                else:
-                    msg="Warning! File does not have access permissions"
-
-            else:
-                msg="File seems to be missing! Maybe path is incorrect?"
-
-        return msg
-
+    def set_image_file(self,imgfile):
+        self.imgfile=imgfile
     #sets the desired dimensions in px units
     def set_height(self,dim):
-        """sets the desired dimensions in px units"""
-        self.dimensions[1] = dim
+        self.dimensions["height"] = int(dim)
 
     def set_width(self,dim):
         """sets the desired dimensions in px units"""
-        self.dimensions[0] = dim
+        self.dimensions["width"] = int(dim)
 
     #sets whether a print is positive or negative
     def set_positive(self,pos):
@@ -203,23 +211,22 @@ class image_vars:
 
     #sets the dot separation width (cen1->cen2) in cm
     def set_separation(self,sep):
-        self.separation = sep
+        self.separation = int(sep)
 
     #sets circle radius in cm
     def set_radius(self,rad):
-        self.radius = rad
+        self.radius = int(rad)
 
     #gets the img file path
     def get_image_file(self):
-        return self.image_file
-
+        return self.imgfile
     #gets the print width in pixels
     def get_width(self):
-        return self.dimensions[0]
+        return self.dimensions.get("width")
 
     #gets the print height in pixels
     def get_height(self):
-        return self.dimensions[1]
+        return self.dimensions.get("height")
 
     #returns whether the print should be positive or not
     def get_positive(self):
