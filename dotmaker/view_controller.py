@@ -216,24 +216,29 @@ class canvass_master(tk.Frame):
         self.canvass2 = tk.Canvas(self, width=240, height=240, bg='gray')
 
     def __align_buttons(self):
-        self.grid_columnconfigure(0,minsize=330,pad=10)
-        self.grid_columnconfigure(1,minsize=330,pad=10)
+        self.grid_columnconfigure(0,minsize=330,pad=5)
+        self.grid_columnconfigure(1,minsize=330,pad=5)
 
-        self.grid_rowconfigure(0,minsize=330,pad=10)
+        self.grid_rowconfigure(0,minsize=330,pad=5)
 
         self.canvass1.grid(row=0,column=0)
-        self.canvass1.grid(row=0,column=1)
+        self.canvass2.grid(row=0,column=1)
 
     def __draw_canvas(self, png,separation):
         """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
         png1 = png.copy()
         png2 = png.copy()
-        png1 = png.resize((240,240), Image.ANTIALIAS)
-        png2 = png.crop((0,separation,separation,0))
-        self.canvass1.image = ImageTk.PhotoImage(png1)
-        self.canvass2.image = ImageTk.PhotoImage(png2)
-        self.canvass1.create_image((120,120), image=png1)
-        self.canvass2.create_image(120,120, image=png2)
+        png1 = png.resize((240,240), PIL.Image.ANTIALIAS)
+        png2 = png.crop((0,separation,separation,0)) ## this needs a bit of work
+        png2 = png.resize((240,240), PIL.Image.ANTIALIAS)
+        image1 = ImageTk.PhotoImage(png1)
+        image2 = ImageTk.PhotoImage(png2)
+        png2.save("img_PIL___1.png","PNG")
+        #I've verified that png1 works, but something is still wrong
+        self.canvass1.create_image((120,120), image=image1)
+        self.canvass2.create_image(120,120, image=image2)
+        self.canvass1.update_idletasks()
+        self.canvass2.update_idletasks()
 
 class gen_frame(tk.Frame):
     def __init__(self, parent, generate_cmd = None):
