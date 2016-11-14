@@ -4,6 +4,7 @@ import tkinter.filedialog
 import PIL.Image
 from PIL import ImageTk, Image
 import pint
+import math
 import model as model
 
 def convert_unit(ureg,prevnumber=None,prevunit=None,newunit=None):
@@ -228,17 +229,16 @@ class canvass_master(tk.Frame):
         """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
         png1 = png.copy()
         png2 = png.copy()
-        png1 = png.resize((240,240), PIL.Image.ANTIALIAS)
-        png2 = png.crop((0,separation,separation,0)) ## this needs a bit of work
-        png2 = png.resize((240,240), PIL.Image.ANTIALIAS)
-        image1 = ImageTk.PhotoImage(png1)
-        image2 = ImageTk.PhotoImage(png2)
-        png2.save("img_PIL___1.png","PNG")
+        png2 = png2.crop((0,0,int(math.sqrt(2)*separation),int(math.sqrt(2)*separation)))
+
+        png1 = png1.resize((240,240), PIL.Image.ANTIALIAS)
+        png2 = png2.resize((240,240), PIL.Image.ANTIALIAS)
+
+        self.image1 = ImageTk.PhotoImage(png1)
+        self.image2 = ImageTk.PhotoImage(png2)
         #I've verified that png1 works, but something is still wrong
-        self.canvass1.create_image((120,120), image=image1)
-        self.canvass2.create_image(120,120, image=image2)
-        self.canvass1.update_idletasks()
-        self.canvass2.update_idletasks()
+        self.canvass1.create_image(120,120, image=self.image1)
+        self.canvass2.create_image(120,120, image=self.image2)
 
 class gen_frame(tk.Frame):
     def __init__(self, parent, generate_cmd = None):
