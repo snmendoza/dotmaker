@@ -120,7 +120,7 @@ class circle_param_frame(tk.Frame):
         return dict(px_cm=(self.pixels_per_unit_value.get(),self.pixels_per_unit_unit.get()),
                     separation=(self.separation.get(),self.unit.get()),
                     radius=(self.radius.get(),self.unit.get()),
-                    is_positive=str(self.pos.get()))
+                    is_positive=self.pos.get())
 
     def __define_vars(self):
         self.label_font = ("Helvetica", 11)
@@ -207,7 +207,12 @@ class canvass_master(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self,parent)
         self.__define_buttons()
+        self.__define_vars()
         self.__align_buttons()
+
+    def __define_vars(self):
+        self.image1 = None
+        self.image2 = None
 
     def update_canvass(self,img,sep):
         self.__draw_canvas(img,sep)
@@ -229,16 +234,17 @@ class canvass_master(tk.Frame):
         """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
         png1 = png.copy()
         png2 = png.copy()
-        png2 = png2.crop((0,0,int(math.sqrt(2)*separation),int(math.sqrt(2)*separation)))
+        png2 = png2.crop((0,0,int(math.sqrt(2)*separation)+1,int(math.sqrt(2)*separation)+1))
 
-        png1 = png1.resize((240,240), PIL.Image.ANTIALIAS)
-        png2 = png2.resize((240,240), PIL.Image.ANTIALIAS)
+        png1 = png1.resize((240,240))
+        png2 = png2.resize((240,240))
 
+        #png1 & 2 can be saved to file at this point using pngN.save(url)
         self.image1 = ImageTk.PhotoImage(png1)
         self.image2 = ImageTk.PhotoImage(png2)
-        #I've verified that png1 works, but something is still wrong
-        self.canvass1.create_image(120,120, image=self.image1)
-        self.canvass2.create_image(120,120, image=self.image2)
+
+        self.canvass1.create_image(120,120, image=self.image1 )
+        self.canvass2.create_image(120,120, image=self.image2 )
 
 class gen_frame(tk.Frame):
     def __init__(self, parent, generate_cmd = None):

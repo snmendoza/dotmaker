@@ -15,6 +15,7 @@ class png_maker:
         self.x              = container.get_width()
         self.y              = container.get_height()
         self.positive       = container.get_positive()
+        print("pos" + str(self.positive))
         self.separation     = container.get_separation()
         input_file          = container.get_image_file()
 
@@ -40,32 +41,41 @@ class png_maker:
 
     def __initcircles(self):
         '''creates a short list of cirlce tuple coordinates'''
-        # this function creates a list of 2d tuples storing pixels inside a circle
-        # to do that, it scans from x = 0 -> circle radius, evaluating if the relation
-        # x^2 + y^2 < rad^2 holds true. If so, it adds the following points to a
-        # circle point list:
-        # ( x,y ) Quadrant 1.
-        # (-x,y ) Quadrant 2.
-        # (-x,-y) Quadrant 3.
-        # ( x,-y) Quadrant 4.
+        r = int(self.r)
+        x = r
+        y = 0
+        p = 1 - r
+        while x >= y:
+            self.__circle_param_set(x,y)
+            y=y+1
+            if p < 0:
+                p = p + 2*y + 1
 
-        circleRadius = int(self.r)
-        circleRadiusSquared = circleRadius*circleRadius
-        for x in range(circleRadius):
-            ybase = 0
-            while (ybase*ybase + x*x) <= circleRadiusSquared:
-                self.circles.append((x,ybase))
-                self.circles.append((-x,ybase))
-                self.circles.append((-x,-ybase))
-                self.circles.append((x,-ybase))
-                ybase=ybase+1
+            else:
+                x = x - 1
+                p = p + 2*(y-x) + 1
+
+
+    def __circle_param_set(self,x,y):
+        #octants 1,4,5,8
+        for i in range(0,x+1):
+            self.circles.append(( x - i, y))
+            self.circles.append((-x + i, y))
+            self.circles.append((-x + i,-y))
+            self.circles.append(( x - i,-y))
+        #octants 2,3,6,7
+        for i in range(0,y+1):
+            self.circles.append(( y-i, x))
+            self.circles.append((-y+i, x))
+            self.circles.append((-y+i,-x))
+            self.circles.append(( y-i,-x))
 
     def __initalphamask(self):
         ''' Puts an alpha mask of 0 or 1 across the image,
         depending on input parameters'''
         pixdata = self.img.load()
 
-        if self.positive:
+        if self.positive==True:
             alpha = 0
         else:
             alpha = 255
@@ -104,7 +114,7 @@ class png_maker:
         # ******************* Extraneous Loop things **************
 
         # tells us whether the alpha value should be zero or not
-        if self.positive:
+        if self.positive==True:
             alpha = 255
         else:
             alpha = 0
