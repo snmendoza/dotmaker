@@ -27,8 +27,13 @@ class png_maker:
             img = img.resize((self.x,self.y))
         self.img = img
 
-    def get_img(self):
-        return self.img
+    def get_img_obj(self):
+        cont_dict = dict(image = self.img,
+                         separation = self.separation,
+                         radius = self.r,
+                         positive = self.positive)
+        container = image_container(cont_dict)
+        return container
 
     def createpng(self):
         '''creates a png with specified holes'''
@@ -59,16 +64,20 @@ class png_maker:
     def __circle_param_set(self,x,y):
         #octants 1,4,5,8
         for i in range(0,x+1):
-            self.circles.append(( x - i, y))
-            self.circles.append((-x + i, y))
-            self.circles.append((-x + i,-y))
-            self.circles.append(( x - i,-y))
+            self.__circle_set(( x - i, y))
+            self.__circle_set((-x + i, y))
+            self.__circle_set((-x + i,-y))
+            self.__circle_set(( x - i,-y))
         #octants 2,3,6,7
         for i in range(0,y+1):
-            self.circles.append(( y-i, x))
-            self.circles.append((-y+i, x))
-            self.circles.append((-y+i,-x))
-            self.circles.append(( y-i,-x))
+            self.__circle_set(( y-i, x))
+            self.__circle_set((-y+i, x))
+            self.__circle_set((-y+i,-x))
+            self.__circle_set(( y-i,-x))
+
+    def __circle_set(self,tup):
+        if tup not in self.circles:
+            self.circles.append(tup)
 
     def __initalphamask(self):
         ''' Puts an alpha mask of 0 or 1 across the image,
@@ -169,6 +178,53 @@ class png_maker:
                     newlist.append((xadj,yadj))
 
         return newlist
+
+class image_container:
+    def __init__(self, var_dict):
+        self.__set_values__(var_dict)
+
+    def __set_values__(self,var_dict):
+        self.__img = var_dict.get("image")
+        self.__sep = var_dict.get("separation")
+        self.__radius = var_dict.get("radius")
+        self.__pos = var_dict.get("positive")
+
+    def get_image(self):
+        return self.__img.copy()
+
+    def get_unit_image(self):
+        temp_img = self.get_image()
+        xdim = int(math.sqrt(2)*self.__sep +1)
+        ydim = xdim
+        return temp_img.crop((0,0,xdim,ydim))
+
+    def get_theoretical_opacity(self):
+        diameter = 2*(self.__radius)
+        d2 = diameter*diameter
+        sep = self.__sep
+        s2 = sep*sep
+        if diameter < sep:
+            if self.__pos == False:
+                return ((4*s2 - math.pi*d2) / (math.pi*d2))
+
+            else:
+                return ((math.pi*d2) / (4*s2 - math.pi*d2))
+
+        else:
+            return 0.99;
+
+
+    def get_numerical_opacity(self):
+        temp_img = self.get_unit_image()
+        xdim = int(math.sqrt(2)*self.__sep)
+        ydim = xdim
+        alpha = 0
+        for x in range(0,xdim+1):
+            for y in range(0,ydim+1):
+                pixel_tuple = temp_img.getpixel((x,y))
+                alpha = alpha + pixel_tuple[3]
+
+        return alpha / (255*xdim*ydim)
 
 class image_vars:
     def __init__(self,var_dict):

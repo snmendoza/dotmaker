@@ -203,6 +203,78 @@ class circle_param_frame(tk.Frame):
         self.separation.set(convert_unit(self.ureg,self.separation,self.unit,update))
         self.unit.set(update)
 
+class cell_param_frame(tk.Frame):
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
+        self.__define_vars()
+        self.__define_buttons()
+        self.__align_buttons()
+
+    def update_param(self,model):
+        self.__model_update(model)
+
+    def __define_vars(self):
+        self.param_font = ("Helvetica", 11)
+        self.label_font = ("Helvetica", 14)
+        self.theoretical_opacity_var = tk.StringVar()
+        self.numerical_opacity_var = tk.StringVar()
+
+        self.theoretical_opacity_var.set("0.0")
+        self.numerical_opacity_var.set("0.0")
+
+    def __define_buttons(self):
+        #labels:
+        self.main_label  = tk.Label(self, text="Unit Cell View",font=self.label_font)
+
+        self.l_theoretical_opacity  = tk.Label(self, text="Theoretical Opacity",font=self.param_font)
+        self.l_numerical_opacity  = tk.Label(self, text="Numerical Opacity",font=self.param_font)
+
+        self.theoretical_opacity  = tk.Label(self, textvariable=self.theoretical_opacity_var,font=self.param_font)
+        self.numerical_opacity  = tk.Label(self, textvariable=self.numerical_opacity_var,font=self.param_font)
+
+    def __align_buttons(self):
+        self.grid_columnconfigure(0,minsize=100)
+        self.grid_columnconfigure(1,minsize=30)
+
+        self.grid_rowconfigure(0,minsize=30)
+        self.grid_rowconfigure(1,minsize=30)
+        self.grid_rowconfigure(2,minsize=30)
+
+        self.main_label.grid(row=0,column=0, columnspan=2,sticky='w')
+
+        self.l_theoretical_opacity.grid(row=1,column=0)
+        self.l_numerical_opacity.grid(row=2,column=0)
+        self.theoretical_opacity.grid(row=1,column=1)
+        self.numerical_opacity.grid(row=2,column=1)
+
+    def __model_update(self,model):
+        self.theoretical_opacity_var.set(model.get_theoretical_opacity())
+        self.numerical_opacity_var.set(model.get_numerical_opacity())
+
+class print_param_frame(tk.Frame):
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
+        self.__define_vars()
+        self.__define_buttons()
+        self.__align_buttons()
+
+    def __define_vars(self):
+        self.label_font = ("Helvetica", 14)
+
+    def __define_buttons(self):
+        #labels:
+        self.main_label  = tk.Label(self, text="Print View",font=self.label_font)
+
+    def __align_buttons(self):
+        self.grid_columnconfigure(0,minsize=100)
+        self.grid_columnconfigure(1,minsize=30)
+
+        self.grid_rowconfigure(0,minsize=30)
+        self.grid_rowconfigure(1,minsize=30)
+        self.grid_rowconfigure(2,minsize=30)
+
+        self.main_label.grid(row=0,column=0, columnspan=2,sticky='w')
+
 class canvass_master(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self,parent)
@@ -214,34 +286,37 @@ class canvass_master(tk.Frame):
         self.image1 = None
         self.image2 = None
 
-    def update_canvass(self,img,sep):
-        self.__draw_canvas(img,sep)
+    def update_canvass(self,img_model):
+        self.__draw_canvas(img_model)
+        self.var_frame.update_param(img_model)
 
     def __define_buttons(self):
         self.canvass1 = tk.Canvas(self, width=240, height=240, bg='gray')
         self.canvass2 = tk.Canvas(self, width=240, height=240, bg='gray')
+        self.var_frame = cell_param_frame(self)
+        self.print_frame = print_param_frame(self)
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=330,pad=5)
         self.grid_columnconfigure(1,minsize=330,pad=5)
 
-        self.grid_rowconfigure(0,minsize=330,pad=5)
+        self.grid_rowconfigure(0,minsize=260,pad=5)
+        self.grid_rowconfigure(1,minsize=60)
 
         self.canvass1.grid(row=0,column=0)
         self.canvass2.grid(row=0,column=1)
 
-    def __draw_canvas(self, png,separation):
-        """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
-        png1 = png.copy()
-        png2 = png.copy()
-        png2 = png2.crop((0,0,int(math.sqrt(2)*separation)+1,int(math.sqrt(2)*separation)+1))
+        self.var_frame.grid(row=1,column=1)
+        self.print_frame.grid(row=1,column=0)
 
-        png1 = png1.resize((240,240))
-        png2 = png2.resize((240,240))
+    def __draw_canvas(self, png_model):
+        """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
+        png1 = png_model.get_image()
+        png2 = png_model.get_unit_image()
 
         #png1 & 2 can be saved to file at this point using pngN.save(url)
-        self.image1 = ImageTk.PhotoImage(png1)
-        self.image2 = ImageTk.PhotoImage(png2)
+        self.image1 = ImageTk.PhotoImage(png1.resize((240,240)))
+        self.image2 = ImageTk.PhotoImage(png2.resize((240,240)))
 
         self.canvass1.create_image(120,120, image=self.image1 )
         self.canvass2.create_image(120,120, image=self.image2 )
@@ -326,8 +401,8 @@ class controller_object:
         png = model.png_maker(container)
         png.createpng()
         print("done with model")
-        self.img = png.get_img()
-        self.canvass_master.update_canvass(self.img,container.get_separation())
+        self.img_model = png.get_img_obj()
+        self.canvass_master.update_canvass(self.img_model)
 
     def __normalize_vars(self):
         vars_dict = self.side_frame.get_vars()
