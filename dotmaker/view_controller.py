@@ -150,7 +150,7 @@ class circle_param_frame(tk.Frame):
         self.separation.set('0.2')
 
         self.unit = tk.StringVar()
-        self.unit.set('mm')
+        self.unit.set('cm')
 
     def __define_buttons(self):
         #labels:

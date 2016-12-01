@@ -42,12 +42,12 @@ class png_maker:
 
     def __initcircles(self):
         '''creates a short list of cirlce tuple coordinates'''
-        r = int(self.r)
+        r = self.r
         x = r
         y = 0
         p = 1 - r
         while x >= y:
-            self.__circle_param_set(x,y)
+            self.__circle_param_set(int(x),int(y))
             y=y+1
             if p < 0:
                 p = p + 2*y + 1
@@ -103,17 +103,16 @@ class png_maker:
         xwidth      = self.x
         yheight     = self.y
 
-        x_1         = sep*math.sqrt(2)/2
-        y_1         = sep*math.sqrt(2)/2
-
-        x_i         = sep*math.sqrt(2)
-        y_i         = sep*math.sqrt(2)
+        n_i         = sep*math.sqrt(2)
 
         # dividing total pixel length on one side by the width of the iterator
         # gives us the expected number of iterations per raster scan.
         dimensions  = (xwidth,yheight)
-        x_f         = int(xwidth/x_i)
-        y_f         = int(yheight/y_i)
+
+        x_f         = int(round(float(xwidth )/n_i,0)) + 1
+        y_f         = int(round(float(yheight)/n_i,0)) + 1
+
+        n_i = int(round(n_i,0))
         # *********************************************************
         # ******************* Extraneous Loop things **************
 
@@ -124,12 +123,12 @@ class png_maker:
             alpha = 0
 
         pxDat = self.img.load()
-        for x in range(x_f+1):
-            for y in range(y_f+1):
+        for x in range(0,x_f):
+            for y in range(0,y_f):
                 # Get the list of valid circle points per iterator position
                 # Remember that there are two different types of rows here
-                centerCoordinate00 = (int(x*x_i),int(y*y_i))
-                centerCoordinater2r2 = (int(x_1+(x*x_i)),int(y_1+(y*y_i)))
+                centerCoordinate00 = (x*n_i,y*n_i)
+                centerCoordinater2r2 = (n_i/2 + centerCoordinate00[0], n_i/2 + centerCoordinate00[1])
                 circleList00 = \
                     self.__getAdjustedPoints(centerCoordinate00,dimensions)
                 circleListr2r2 = \
@@ -169,7 +168,7 @@ class png_maker:
                 circlepoint = self.circles[i]
                 xadj = circlepoint[0] + c_x
                 yadj = circlepoint[1] + c_y
-                if xadj in range(dimensions[0]) and yadj in range(dimensions[1]):
+                if xadj in range(0,dimensions[0]) and yadj in range(0,dimensions[1]):
                     newlist.append((xadj,yadj))
 
         return newlist
@@ -189,22 +188,30 @@ class image_container:
 
     def get_unit_image(self):
         temp_img = self.get_image()
-        xdim = int(math.sqrt(2)*self.__sep+1)
+        n_i      = self.__sep*math.sqrt(2)
+        xdim = int(round(n_i,0))
         ydim = xdim
-        return temp_img.crop((0,0,xdim,ydim))
+        return temp_img.crop((0,0,xdim+1,ydim+1))
+
+    def get_2unit_image(self):
+        temp_img = self.get_image()
+        n_i      = self.__sep*math.sqrt(2)
+        xdim = int(round(n_i,0))
+        ydim = xdim
+        return temp_img.crop((0,0,2*xdim+1,2*ydim+1))
 
     def get_theoretical_opacity(self):
         r = self.__radius
         s = self.__sep
+        r = int(round(r,0))
+        s = int(round(s,0))
         s2 = float(s*s)
         r2 = float(r*r)
         if 2*r < s:
             if self.__pos == True:
-                print("positive")
                 return math.pi*r2 / s2
 
             else:
-                print("negative")
                 return ((s2 - math.pi*r2) / s2)
 
         else:
@@ -212,12 +219,13 @@ class image_container:
 
 
     def get_numerical_opacity(self):
-        temp_img = self.get_unit_image()
-        xdim = int(math.sqrt(2)*self.__sep)
-        ydim = xdim
-        alpha = 0
-        for x in range(0,xdim+1):
-            for y in range(0,ydim+1):
+        temp_img = self.get_2unit_image()
+        n_i      = self.__sep*math.sqrt(2)
+        xdim     = 2*int(round(n_i,0)) + 1
+        ydim     = xdim
+        alpha    = 0
+        for x in range(0,xdim):
+            for y in range(0,ydim):
                 pixel_tuple = temp_img.getpixel((x,y))
                 alpha = alpha + pixel_tuple[3]
 
@@ -245,7 +253,7 @@ class image_vars:
 
 
     def __set_values(self,dictionary_input):
-        px_cm_conversion =   int(self.normalize_unit(dictionary_input.get("px_cm")))
+        px_cm_conversion =   float(self.normalize_unit(dictionary_input.get("px_cm")))
         self.set_height(     float(self.normalize_unit(dictionary_input.get("height")))*px_cm_conversion)
         self.set_width(      float(self.normalize_unit(dictionary_input.get("width")))*px_cm_conversion)
         self.set_separation( float(self.normalize_unit(dictionary_input.get("separation")))*px_cm_conversion)
@@ -261,11 +269,11 @@ class image_vars:
         self.imgfile=imgfile
     #sets the desired dimensions in px units
     def set_height(self,dim):
-        self.dimensions["height"] = int(dim)
+        self.dimensions["height"] = int(round(dim,0))
 
     def set_width(self,dim):
         """sets the desired dimensions in px units"""
-        self.dimensions["width"] = int(dim)
+        self.dimensions["width"] = int(round(dim,0))
 
     #sets whether a print is positive or negative
     def set_positive(self,pos):
@@ -274,11 +282,11 @@ class image_vars:
 
     #sets the dot separation width (cen1->cen2) in cm
     def set_separation(self,sep):
-        self.separation = int(sep)
+        self.separation = round(sep,0)
 
     #sets circle radius in cm
     def set_radius(self,rad):
-        self.radius = int(rad)
+        self.radius = rad
 
     #gets the img file path
     def get_image_file(self):
