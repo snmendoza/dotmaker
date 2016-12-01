@@ -23,7 +23,7 @@ class base_generation_frame(tk.Frame):
 
     def get_var_params(self):
         if self.gen_option==1:
-            inpath=None
+            inpath = None
         else:
             inpath = self.inpath
 
@@ -104,10 +104,11 @@ class base_generation_frame(tk.Frame):
         self.unit.set(update)
 
     def __browsein(self):
-            """get file location string, display string, open image, make
-            make resized image, display both, save both for future ref"""
-            I = str(tk.filedialog.askopenfilename())
-            self.inpath.set(I)
+        """get file location string, display string, open image, make
+        make resized image, display both, save both for future ref"""
+        I = str(tk.filedialog.askopenfilename())
+        self.inpath.set(I)
+        self.gen_option=0
 
 class circle_param_frame(tk.Frame):
     def __init__(self, parent):
@@ -322,37 +323,75 @@ class canvass_master(tk.Frame):
         self.canvass2.create_image(120,120, image=self.image2 )
 
 class gen_frame(tk.Frame):
-    def __init__(self, parent, generate_cmd = None):
+    def __init__(self, parent, command_dict):
         tk.Frame.__init__(self, parent)
-        self.__generate_cmd = generate_cmd
-        self.__define_vars()
+        self.__define_vars(command_dict)
         self.__define_buttons()
         self.__align_buttons()
 
-    def __define_vars(self):
+    def get_save_filepath(self):
+        if self.out_directory==None:
+            return None
+
+        else:
+            return self.out_directory + "/" + self.filenamevar.get()
+
+    def __define_vars(self,command_dict):
+        self.out_directory = None
+
+        self.filepathvar = tk.StringVar()
+        self.filepathvar.set("Save Directory:")
+        self.filenamevar = tk.StringVar()
+        self.filenamevar.set("dotmaker pattern")
+
+        self.__generate_cmd = command_dict.get("generate")
+        self.__save_cmd = command_dict.get("save")
         self._label_font = ("Helvetica", 11)
         self._button_font = ("Helvetica", 11)
 
     def __define_buttons(self):
-        self.gen_button = tk.Button(self, text="Generate", command=self.__generate_cmd \
-        , font=self._label_font)
-        self.save_button = tk.Button(self, text="Save", font=self._label_font)
+        self.file_out = tk.Button(self, text='Browse', font=self._label_font,width=15, command=self.__setpath)
+        self.file_out_path = tk.Label(self, textvariable=self.filepathvar, font=self._label_font)
+
+        self.file_name_lab = tk.Label(self, text="Appended File Name",font=self._label_font)
+        self.file_name_append = tk.Entry(self, textvariable=self.filenamevar,font=self._label_font,width=15)
+
+        self.gen_button = tk.Button(self, text="Generate", font = self._label_font,width=15,\
+            command=self.__generate_cmd)
+        self.save_button = tk.Button(self, text="Save", font=self._label_font,width=15,\
+            command=self.__save_cmd)
 
     def __align_buttons(self):
-        self.grid_columnconfigure(0,minsize=200)
-        self.grid_rowconfigure(0,minsize=200)
+        self.grid_columnconfigure(0,minsize=150)
+        self.grid_columnconfigure(1,minsize=30)
 
-        self.gen_button.grid(row=0,column=0)
-        self.save_button.grid(row=0,column=1)
+        self.grid_rowconfigure(0,minsize=30)
+        self.grid_rowconfigure(1,minsize=30)
+        self.grid_rowconfigure(2,minsize=30)
+
+        self.file_name_lab.grid(row=0,column=0,sticky='w')
+        self.file_name_append.grid(row=0,column=1,sticky='w')
+
+        self.file_out_path.grid(row=1,column=0,sticky='w')
+        self.file_out.grid(row=1,column=1,sticky='w')
+
+        self.gen_button.grid(row=2,column=0,sticky='w')
+        self.save_button.grid(row=2,column=1,sticky='w')
+
+    def __setpath(self):
+        I = str(tk.filedialog.askdirectory())
+        self.out_directory=I
+        l = len(I)
+        self.filepathvar.set("Save Directory:" + I[l-10:l])
 
 class side_frame(tk.Frame):
-    def __init__(self, parent, generate_cmd = None):
+    def __init__(self, parent, command_dict):
         tk.Frame.__init__(self, parent)
-        self.__define_subframes(generate_cmd)
+        self.__define_subframes(command_dict)
         self.__align_subframes()
 
-    def __define_subframes(self,generate_cmd):
-        self.generate_frame        = gen_frame(self,generate_cmd)
+    def __define_subframes(self,command_dict):
+        self.generate_frame        = gen_frame(self,command_dict)
         self.base_generation_frame = base_generation_frame(self)
         self.circle_param_frame    = circle_param_frame(self)
 
@@ -367,6 +406,9 @@ class side_frame(tk.Frame):
         self.circle_param_frame.grid(row=1,column=0)
         self.generate_frame.grid(row=2,column=0)
 
+    def get_save_filepath(self):
+        return self.generate_frame.get_save_filepath()
+
     def get_vars(self):
         dict1 = self.base_generation_frame.get_var_params()
         dict2 = self.circle_param_frame.get_var_params()
@@ -376,16 +418,20 @@ class controller_object:
     def __init__(self):
         # All other 'global variabels' are initialized in the constructor.
         self.root = tk.Tk()
-        self.root.wm_title("Dot Maker")
+        self.__define_vars()
         self.__create_frames()
         self.__align_frames()
         self.root.mainloop()
-        self.img = PIL.Image.new('RGBA', (250,250), 0)
+
+    def __define_vars(self):
+        self.__label_font = ("Helvetica", 16)
+        self.img_model = None
 
     def __create_frames(self):
         self.root.wm_title("Dot Maker")
         self.canvass_master = canvass_master(self.root)
-        self.side_frame     = side_frame(self.root,self.__generate)
+        commands = dict(generate=self.__generate,save=self.__save)
+        self.side_frame     = side_frame(self.root,commands)
 
     def __align_frames(self):
         self.root.grid_columnconfigure(0,minsize=300)
@@ -396,11 +442,26 @@ class controller_object:
         self.canvass_master.grid(row=0, column=0)
         self.side_frame.grid(row=0,column=1)
 
+    def __save(self):
+        if self.img_model!=None:
+            vars_dict = self.side_frame.get_vars()
+            filepath = self.side_frame.get_save_filepath()
+            if filepath!=None:
+                px_cm = vars_dict.get("px_cm")
+                sep = vars_dict.get("separation")
+                radius = vars_dict.get("radius")
+                filepath = filepath + " r:" + str(radius[0]) + str(radius[1]) + \
+                                  " s:" + str(sep[0]) + str(sep[1]) + \
+                                  " pp:" + str(px_cm[0]) + str(px_cm[1]) + \
+                                  ".png"
+
+                img = self.img_model.get_image()
+                img.save(filepath)
+
     def __generate(self):
         container = self.__normalize_vars()
         png = model.png_maker(container)
         png.createpng()
-        print("done with model")
         self.img_model = png.get_img_obj()
         self.canvass_master.update_canvass(self.img_model)
 

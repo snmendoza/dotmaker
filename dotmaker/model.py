@@ -15,14 +15,13 @@ class png_maker:
         self.x              = container.get_width()
         self.y              = container.get_height()
         self.positive       = container.get_positive()
-        print("pos" + str(self.positive))
         self.separation     = container.get_separation()
         input_file          = container.get_image_file()
 
         if input_file == None:
             img = PIL.Image.new('RGBA', (self.x,self.y), 0)
         else:
-            img = PIL.Image.open(input_file)
+            img = PIL.Image.open(input_file.get())
             img = img.convert("RGBA")
             img = img.resize((self.x,self.y))
         self.img = img
@@ -38,11 +37,8 @@ class png_maker:
     def createpng(self):
         '''creates a png with specified holes'''
         self.__initcircles()
-        print("Circles")
         self.__initalphamask()
-        print("alphamask")
         self.__drawcircles()
-        print("draw circles")
 
     def __initcircles(self):
         '''creates a short list of cirlce tuple coordinates'''
@@ -103,16 +99,15 @@ class png_maker:
         # up x and y by 2*separation/sqrt(2)
         # The 2/root(2) comes from geometry relations between the circle centers
         # ******************* Iterator variables ******************
-        sep        = self.separation
-        root2       = 1/(math.sqrt(2))
-
-        x_1         = sep*root2
-        x_i         = sep*root2*2
-        y_1         = sep*root2
-        y_i         = sep*root2*2
-
+        sep         = self.separation
         xwidth      = self.x
         yheight     = self.y
+
+        x_1         = sep*math.sqrt(2)/2
+        y_1         = sep*math.sqrt(2)/2
+
+        x_i         = sep*math.sqrt(2)
+        y_i         = sep*math.sqrt(2)
 
         # dividing total pixel length on one side by the width of the iterator
         # gives us the expected number of iterations per raster scan.
@@ -194,21 +189,23 @@ class image_container:
 
     def get_unit_image(self):
         temp_img = self.get_image()
-        xdim = int(math.sqrt(2)*self.__sep +1)
+        xdim = int(math.sqrt(2)*self.__sep+1)
         ydim = xdim
         return temp_img.crop((0,0,xdim,ydim))
 
     def get_theoretical_opacity(self):
-        diameter = 2*(self.__radius)
-        d2 = diameter*diameter
-        sep = self.__sep
-        s2 = sep*sep
-        if diameter < sep:
-            if self.__pos == False:
-                return ((4*s2 - math.pi*d2) / (math.pi*d2))
+        r = self.__radius
+        s = self.__sep
+        s2 = float(s*s)
+        r2 = float(r*r)
+        if 2*r < s:
+            if self.__pos == True:
+                print("positive")
+                return math.pi*r2 / s2
 
             else:
-                return ((math.pi*d2) / (4*s2 - math.pi*d2))
+                print("negative")
+                return ((s2 - math.pi*r2) / s2)
 
         else:
             return 0.99;
