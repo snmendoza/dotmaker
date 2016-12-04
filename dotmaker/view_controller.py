@@ -136,7 +136,7 @@ class circle_param_frame(tk.Frame):
         self.temp_unit2.set('cm')
 
         self.pixels_per_unit_value = tk.StringVar()
-        self.pixels_per_unit_value.set('1000')
+        self.pixels_per_unit_value.set('200')
 
         self.pixels_per_unit_unit = tk.StringVar()
         self.pixels_per_unit_unit.set('cm')
@@ -207,9 +207,13 @@ class canvass_master(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.__define_buttons()
         self.__align_buttons()
+        self.image1 = tk.PhotoImage()
+        self.image2 = tk.PhotoImage()
+
 
     def update_canvass(self,img,sep):
-        self.__draw_canvas(img,sep)
+        print('received passed')
+        self.__draw_canvas(img,sep, im1, im2)
 
     def __define_buttons(self):
         self.canvass1 = tk.Canvas(self, width=240, height=240, bg='gray')
@@ -226,17 +230,20 @@ class canvass_master(tk.Frame):
 
     def __draw_canvas(self, png,separation):
         """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
+        print("start draw")
+        print(str(png))
         png1 = png.copy()
         png2 = png.copy()
+        print("copied pngs")
         png1 = png.resize((240,240), PIL.Image.ANTIALIAS)
         png2 = png.crop((0,separation,separation,0)) ## this needs a bit of work
         png2 = png.resize((240,240), PIL.Image.ANTIALIAS)
-        image1 = ImageTk.PhotoImage(png1)
-        image2 = ImageTk.PhotoImage(png2)
+        self.image1 = ImageTk.PhotoImage(png1)
+        self.image2 = ImageTk.PhotoImage(png2)
         png2.save("img_PIL___1.png","PNG")
         #I've verified that png1 works, but something is still wrong
-        self.canvass1.create_image((120,120), image=image1)
-        self.canvass2.create_image(120,120, image=image2)
+        self.image1 = self.canvass1.create_image((120,120), image=self.image1)
+        self.image2 = self.canvass2.create_image(120,120, image=self.image2)
         self.canvass1.update_idletasks()
         self.canvass2.update_idletasks()
 
@@ -291,6 +298,7 @@ class side_frame(tk.Frame):
         dict2 = self.circle_param_frame.get_var_params()
         return {**dict1, **dict2}
 
+
 class controller_object:
     def __init__(self):
         # All other 'global variabels' are initialized in the constructor.
@@ -303,7 +311,7 @@ class controller_object:
 
     def __create_frames(self):
         self.root.wm_title("Dot Maker")
-        self.canvass_master = canvass_master(self.root)
+        self.canvas_master = canvass_master(self.root)
         self.side_frame     = side_frame(self.root,self.__generate)
 
     def __align_frames(self):
@@ -312,7 +320,7 @@ class controller_object:
 
         self.root.grid_rowconfigure(0,minsize=100)
 
-        self.canvass_master.grid(row=0, column=0)
+        self.canvas_master.grid(row=0, column=0)
         self.side_frame.grid(row=0,column=1)
 
     def __generate(self):
@@ -321,7 +329,10 @@ class controller_object:
         png.createpng()
         print("done with model")
         self.img = png.get_img()
-        self.canvass_master.update_canvass(self.img,container.get_separation())
+        self.image1 = canvas_master.image1
+        self.image2 = canvas_master.image2
+        self.canvas_master.update_canvass(self.img,container.get_separation())
+        print("passed image to master")
 
     def __normalize_vars(self):
         vars_dict = self.side_frame.get_vars()
