@@ -2,172 +2,104 @@ import sys
 import os.path
 import imghdr
 import PIL.Image
+import PIL.ImageDraw as ImageDraw
 import math
 import pint
 import time
 from copy import deepcopy
 from tkinter import *
-
-class png_maker:
+import operator
+# Class cell_analysis:
+#-update analysis to work with s > r
+#-update analysis to work with unit_cell class
+# Class unit cell:
+# confirm that filling in circles is done right
+class unit_cell:
     def __init__(self, container):
-        self.circles        = []
-        self.r              = container.get_radius()
-        self.x              = container.get_width()
-        self.y              = container.get_height()
-        self.positive       = container.get_positive()
-        self.separation     = container.get_separation()
-        input_file          = container.get_image_file()
+        self.__define_vars(container)
+        self.__create_cell()
 
-        if input_file == None:
-            img = PIL.Image.new('RGBA', (self.x,self.y), 0)
-        else:
-            img = PIL.Image.open(input_file)
-            img = img.convert("RGBA")
-            img = img.resize((self.x,self.y))
-        self.img = img
+    def __define_vars(self,container):
+        self.r  = container.get_dict_value("radius")
+        self.p  = container.get_dict_value("is_positive")
+        self.s  = container.get_dict_value("separation")
+        self.circ_alpha = 1
+        self.img_alpha  = 0
+        if self.p==False:
+            self.circ_alpha = ~self.circ_alpha
+            self.img_alpha  = ~self.img_alpha
 
-    def get_img(self):
-        return self.img
+        self.__define_mask()
 
-    def createpng(self):
-        '''creates a png with specified holes'''
-        self.__initcircles()
-        print("Circles")
-        self.__initalphamask()
-        print("alphamask")
-        self.__drawcircles()
-        print("draw circles")
+    def __define_mask(self):
+        sep      = self.s*math.sqrt(2)
+        sep      = int(round(sep,0))
+        self.subdiv = sep
+        self.mask = PIL.Image.new('RGBA', (sep*2,sep*2), self.img_alpha*255)
 
-    def __initcircles(self):
-        '''creates a short list of cirlce tuple coordinates'''
-        # this function creates a list of 2d tuples storing pixels inside a circle
-        # to do that, it scans from x = 0 -> circle radius, evaluating if the relation
-        # x^2 + y^2 < rad^2 holds true. If so, it adds the following points to a
-        # circle point list:
-        # ( x,y ) Quadrant 1.
-        # (-x,y ) Quadrant 2.
-        # (-x,-y) Quadrant 3.
-        # ( x,-y) Quadrant 4.
+    def __create_cell():
+        r = self.r
+        s = self.subdiv
+        radius = (-r,-r, r, r)
+        draw = ImageDraw(self.mask)
+        for x in range(0,1):
+            for y in range(0,1):
+                b = (s*x*2,s*y*2,s*x*2,s*y*2)
+                draw.ellipse(tuple(map(operator.add, radius, b)),fill=self.circ_alpha*255)
 
-        circleRadius = int(self.r)
-        circleRadiusSquared = circleRadius*circleRadius
-        for x in range(circleRadius):
-            ybase = 0
-            while (ybase*ybase + x*x) <= circleRadiusSquared:
-                self.circles.append((x,ybase))
-                self.circles.append((-x,ybase))
-                self.circles.append((-x,-ybase))
-                self.circles.append((x,-ybase))
-                ybase=ybase+1
+        b = (s,s,s,s)
+        draw.ellipse(tuple(map(operator.add, radius, b)),fill=self.circ_alpha*255)
+        del draw
 
-    def __initalphamask(self):
-        ''' Puts an alpha mask of 0 or 1 across the image,
-        depending on input parameters'''
-        pixdata = self.img.load()
+    def get_mask(self):
+        return self.mask.copy()
 
-        if self.positive:
-            alpha = 0
-        else:
-            alpha = 255
+    def get_image(self):
+        temp = PIL.Image.new('RGBA', (sep*2,sep*2), self.img_alpha*255)
+        return Image.composite(temp,temp, self.mask)
 
-        for y in range(self.y):
-            for x in range(self.x):
-                pixdata[x, y] = \
-                    (pixdata[x,y][0],pixdata[x,y][1], pixdata[x,y][2], alpha)
+class cell_analysis:
+    def __init__(self, container):
+        self.__set_values__(var_dict)
 
-    def __drawcircles(self):
-        '''places circles across the alpha layer of the png'''
-        # This function raster scans across the png image
-        # There are two types of scans.
-        # One starts at 0,0 and iterates up x and y by iterator 2*separation/sqrt(2)
-        # The second starts at separation/sqrt(2), separation/sqrt(2) and iterates
-        # up x and y by 2*separation/sqrt(2)
-        # The 2/root(2) comes from geometry relations between the circle centers
-        # ******************* Iterator variables ******************
-        sep        = self.separation
-        root2       = 1/(math.sqrt(2))
+    def __set_values__(self,container):
+        self.unit_cell = unit_cell(var_dict)
+        self.r = container.get_dict_value("radius")
+        self.s = container.get_dict_value("separation")
 
-        x_1         = sep*root2
-        x_i         = sep*root2*2
-        y_1         = sep*root2
-        y_i         = sep*root2*2
+    def get_unit_image(self):
+        return self.unit_cell.get_image()
 
-        xwidth      = self.x
-        yheight     = self.y
+    def get_theoretical_opacity(self):
+        r = self.r
+        s = self.s
+        s2 = float(s*s)
+        r2 = float(r*r)
+        if 2*r < s:
+            if self.__pos == True:
+                return math.pi*r2 / s2
 
-        # dividing total pixel length on one side by the width of the iterator
-        # gives us the expected number of iterations per raster scan.
-        dimensions  = (xwidth,yheight)
-        x_f         = int(xwidth/x_i)
-        y_f         = int(yheight/y_i)
-        # *********************************************************
-        # ******************* Extraneous Loop things **************
-
-        # tells us whether the alpha value should be zero or not
-        if self.positive:
-            alpha = 255
-        else:
-            alpha = 0
-
-        pxDat = self.img.load()
-        for x in range(x_f+1):
-            for y in range(y_f+1):
-                # Get the list of valid circle points per iterator position
-                # Remember that there are two different types of rows here
-                centerCoordinate00 = (int(x*x_i),int(y*y_i))
-                centerCoordinater2r2 = (int(x_1+(x*x_i)),int(y_1+(y*y_i)))
-                circleList00 = \
-                    self.__getAdjustedPoints(centerCoordinate00,dimensions)
-                circleListr2r2 = \
-                    self.__getAdjustedPoints(centerCoordinater2r2,dimensions)
-                for i in range(len(circleList00)):
-                    place = circleList00[i]
-                    temppx = pxDat[place[0],place[1]]
-                    pxDat[place[0],place[1]] = \
-                        (temppx[0],temppx[1],temppx[2],alpha)
-
-                for i in range(len(circleListr2r2)):
-                    place = circleListr2r2[i]
-                    temppx = pxDat[place[0],place[1]]
-                    pxDat[place[0],place[1]] = \
-                        (temppx[0],temppx[1],temppx[2],alpha)
-
-    def __getAdjustedPoints(self,centerCoordinate,dimensions):
-        '''Adjusts each point within the circle list
-        to have a center around given coordinates'''
-        # This function takes the list of circle points and offsets them via
-        # the given x,y coordinate. Also passes the xwidth and y width to ensure
-        # only circle pixels within the frame are passed
-        c_x = centerCoordinate[0]
-        c_y = centerCoordinate[1]
-        newlist = []
-
-        if  c_x  - (self.r)>= 0 and self.r + c_x < dimensions[0] \
-        and c_y -  (self.r)>=0  and self.r + c_y < dimensions[1]:
-            for i in range(0,len(self.circles)):
-                circlepoint = self.circles[i]
-                xadj = circlepoint[0] + c_x
-                yadj = circlepoint[1] + c_y
-                newlist.append((xadj,yadj))
+            else:
+                return ((s2 - math.pi*r2) / s2)
 
         else:
-            for i in range(0,len(self.circles)):
-                circlepoint = self.circles[i]
-                xadj = circlepoint[0] + c_x
-                yadj = circlepoint[1] + c_y
-                if xadj in range(dimensions[0]) and yadj in range(dimensions[1]):
-                    newlist.append((xadj,yadj))
+            return 0.99;
 
-        return newlist
+
+    def get_numerical_opacity(self):
+        temp_img = self.get_unit_image()
+        n_i      = self.__sep*math.sqrt(2)
+        width, height = temp_img.size
+        alpha_sum    = 0
+        for x in range(0,xdim):
+            for y in range(0,ydim):
+                pixel_tuple = temp_img.getpixel((x,y))
+                alpha_sum = alpha_sum + pixel_tuple[3]
+
+        return alpha / (255*xdim*ydim)
 
 class image_vars:
     def __init__(self,var_dict):
-        self.dimensions=dict(height=100,width=100)
-        self.is_positive=False
-        self.radius = 1
-        self.separation = 1
-        self.img_file = None
-        self.dict = var_dict
         self.ureg = pint.UnitRegistry()
         self.default = dict(height=("2","cm"),\
                         width=("2","cm"),\
@@ -180,62 +112,50 @@ class image_vars:
         if self.dict != None:
             self.__set_values(self.dict)
 
-
     def __set_values(self,dictionary_input):
-        px_cm_conversion =   int(self.normalize_unit(dictionary_input.get("px_cm")))
-        self.set_height(     float(self.normalize_unit(dictionary_input.get("height")))*px_cm_conversion)
-        self.set_width(      float(self.normalize_unit(dictionary_input.get("width")))*px_cm_conversion)
-        self.set_separation( float(self.normalize_unit(dictionary_input.get("separation")))*px_cm_conversion)
-        self.set_radius(     float(self.normalize_unit(dictionary_input.get("radius")))*px_cm_conversion)
+        px_cm_conversion =   float(self.__normalize_unit(dictionary_input.get("px_cm")))
+        self.value_dictionary=dict( \
+        height=float(self.__normalize_unit(dictionary_input.get("height")))*px_cm_conversion, \
+        width=float(self.__normalize_unit(dictionary_input.get("width")))*px_cm_conversion, \
+        separation=float(self.__normalize_unit(dictionary_input.get("separation")))*px_cm_conversion,\
+        radius=float(self.__normalize_unit(dictionary_input.get("radius")))*px_cm_conversion,\
+        is_positive=dictionary_input.get("is_positive"))
 
-        self.set_image_file( dictionary_input.get("input_file"))
-        self.set_positive(   dictionary_input.get("is_positive"))
-
-    def normalize_unit(self,dict_val):
+    def __normalize_unit(self,dict_val):
         return str(self.ureg(dict_val[0] + dict_val[1]).to("cm").magnitude)
-    #sets the input file path. imgFile input is path
-    def set_image_file(self,imgfile):
-        self.imgfile=imgfile
-    #sets the desired dimensions in px units
-    def set_height(self,dim):
-        self.dimensions["height"] = int(dim)
 
-    def set_width(self,dim):
-        """sets the desired dimensions in px units"""
-        self.dimensions["width"] = int(dim)
+    def get_dict_value(self,dict_value):
+        return self.value_dictionary.get(dict_value)
 
-    #sets whether a print is positive or negative
-    def set_positive(self,pos):
-        """determines what kind of image to produce"""
-        self.is_positive = pos
+def createpng(container):
+    var_list = __define_vars(container)
+    return __create_png_from_vars(var_list)
 
-    #sets the dot separation width (cen1->cen2) in cm
-    def set_separation(self,sep):
-        self.separation = int(sep)
+def __define_vars(container):
+    separation     = container.get_dict_value("separation")
+    unit_cell      = unit_cell(container)
+    dimensions = (container.get_dict_value("height"),container.get_dict_value("width"))
+    input_file          = container.get_dict_value("input_file")
+    if input_file == None:
+        img = PIL.Image.new('RGBA', (self.x,self.y), 255)
+    else:
+        img = PIL.Image.open(input_file.get())
+        img = img.convert("RGBA")
+        img = img.resize((self.x,self.y))
+    return dict(separation=separation, \
+                unit_cell= unit_cell,  \
+                dimensions=dimensions, \
+                image=img)
 
-    #sets circle radius in cm
-    def set_radius(self,rad):
-        self.radius = int(rad)
+def __create_png_from_vars(var_list):
+    ## need a dummy image, mask, and
+    width   = var_list.get("width")
+    height  = var_list.get("height")
+    tile_mask = var_list.get("unit_cell").get_mask()
+    tilewidth, tileheight = tile_mask.size
+    mask = Image.new('RGBA', (width, height))
+    for left in range(0, width, tilewidth):
+        for top in range(0, height, tileheight):
+              mask.paste(tile_mask, (left, top))
 
-    #gets the img file path
-    def get_image_file(self):
-        return self.imgfile
-    #gets the print width in pixels
-    def get_width(self):
-        return self.dimensions.get("width")
-
-    #gets the print height in pixels
-    def get_height(self):
-        return self.dimensions.get("height")
-
-    #returns whether the print should be positive or not
-    def get_positive(self):
-        return self.is_positive
-
-    #gets the cirlce/dot separation in px
-    def get_separation(self):
-        return self.separation
-
-    #gets the cirlce/dot radius in px
-    def get_radius(self):
-        return self.radius
+    return Image.composite(var_list.get("image"), var_list.get("image"), mask)
