@@ -6,7 +6,11 @@ from PIL import ImageTk, Image
 import pint
 import math
 import model as model
-
+##
+#notes:
+#-analyze
+#-autodraw unit cell
+#
 def convert_unit(ureg,prevnumber=None,prevunit=None,newunit=None):
     return str(ureg(prevnumber.get() + prevunit.get()).to(newunit).magnitude)
 
@@ -204,123 +208,44 @@ class circle_param_frame(tk.Frame):
         self.separation.set(convert_unit(self.ureg,self.separation,self.unit,update))
         self.unit.set(update)
 
-class cell_param_frame(tk.Frame):
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-        self.__define_vars()
-        self.__define_buttons()
-        self.__align_buttons()
-
-    def update_param(self,model):
-        self.__model_update(model)
-
-    def __define_vars(self):
-        self.param_font = ("Helvetica", 11)
-        self.label_font = ("Helvetica", 14)
-        self.theoretical_opacity_var = tk.StringVar()
-        self.numerical_opacity_var = tk.StringVar()
-
-        self.theoretical_opacity_var.set("0.0")
-        self.numerical_opacity_var.set("0.0")
-
-    def __define_buttons(self):
-        #labels:
-        self.main_label  = tk.Label(self, text="Unit Cell View",font=self.label_font)
-
-        self.l_theoretical_opacity  = tk.Label(self, text="Theoretical Opacity",font=self.param_font)
-        self.l_numerical_opacity  = tk.Label(self, text="Numerical Opacity",font=self.param_font)
-
-        self.theoretical_opacity  = tk.Label(self, textvariable=self.theoretical_opacity_var,font=self.param_font)
-        self.numerical_opacity  = tk.Label(self, textvariable=self.numerical_opacity_var,font=self.param_font)
-
-    def __align_buttons(self):
-        self.grid_columnconfigure(0,minsize=100)
-        self.grid_columnconfigure(1,minsize=30)
-
-        self.grid_rowconfigure(0,minsize=30)
-        self.grid_rowconfigure(1,minsize=30)
-        self.grid_rowconfigure(2,minsize=30)
-
-        self.main_label.grid(row=0,column=0, columnspan=2,sticky='w')
-
-        self.l_theoretical_opacity.grid(row=1,column=0)
-        self.l_numerical_opacity.grid(row=2,column=0)
-        self.theoretical_opacity.grid(row=1,column=1)
-        self.numerical_opacity.grid(row=2,column=1)
-
-    def __model_update(self,model):
-        self.theoretical_opacity_var.set(model.get_theoretical_opacity())
-        self.numerical_opacity_var.set(model.get_numerical_opacity())
-
-class print_param_frame(tk.Frame):
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-        self.__define_vars()
-        self.__define_buttons()
-        self.__align_buttons()
-
-    def __define_vars(self):
-        self.label_font = ("Helvetica", 14)
-
-    def __define_buttons(self):
-        #labels:
-        self.main_label  = tk.Label(self, text="Print View",font=self.label_font)
-
-    def __align_buttons(self):
-        self.grid_columnconfigure(0,minsize=100)
-        self.grid_columnconfigure(1,minsize=30)
-
-        self.grid_rowconfigure(0,minsize=30)
-        self.grid_rowconfigure(1,minsize=30)
-        self.grid_rowconfigure(2,minsize=30)
-
-        self.main_label.grid(row=0,column=0, columnspan=2,sticky='w')
-
 class canvass_master(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self,parent)
-        self.__define_buttons()
         self.__define_vars()
+        self.__define_buttons()
         self.__align_buttons()
 
     def __define_vars(self):
         self.image1 = None
         self.image2 = None
+        self.label_font = ("Helvetica", 14)
 
-    def update_canvass(self,img_model):
-        self.__draw_canvas(img_model)
-        self.var_frame.update_param(img_model)
+    def update_canvass(self,img_model,canvass):
+        if canvass is "cell":
+            self.image2 = ImageTk.PhotoImage(png2.resize((240,240)))
+            self.canvass2.create_image(120,120, image=self.image2)
+        else:
+            self.image1 = ImageTk.PhotoImage(png1.resize((240,240)))
+            self.canvass1.create_image(120,120, image=self.image1)
 
     def __define_buttons(self):
         self.canvass1 = tk.Canvas(self, width=240, height=240, bg='gray')
         self.canvass2 = tk.Canvas(self, width=240, height=240, bg='gray')
-        self.var_frame = cell_param_frame(self)
-        self.print_frame = print_param_frame(self)
+        self.print_label  = tk.Label(self, text="Print View",font=self.label_font)
+        self.cell_label  = tk.Label(self, text="Cell View",font=self.label_font)
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=330,pad=5)
         self.grid_columnconfigure(1,minsize=330,pad=5)
 
-        self.grid_rowconfigure(0,minsize=260,pad=5)
-        self.grid_rowconfigure(1,minsize=60)
+        self.grid_rowconfigure(0,minsize=30,pad=5)
+        self.grid_rowconfigure(1,minsize=260)
 
-        self.canvass1.grid(row=0,column=0)
-        self.canvass2.grid(row=0,column=1)
+        self.canvass1.grid(row=1,column=0)
+        self.canvass2.grid(row=1,column=1)
 
-        self.var_frame.grid(row=1,column=1)
-        self.print_frame.grid(row=1,column=0)
-
-    def __draw_canvas(self, png_model):
-        """puts thumbnail in canvas1(left) canvas, cropped image in canvas2(left)"""
-        png1 = png_model.get_image()
-        png2 = png_model.get_unit_image()
-
-        #png1 & 2 can be saved to file at this point using pngN.save(url)
-        self.image1 = ImageTk.PhotoImage(png1.resize((240,240)))
-        self.image2 = ImageTk.PhotoImage(png2.resize((240,240)))
-
-        self.canvass1.create_image(120,120, image=self.image1 )
-        self.canvass2.create_image(120,120, image=self.image2 )
+        self.cell_label.grid(row=0,column=1)
+        self.print_label.grid(row=0,column=0)
 
 class gen_frame(tk.Frame):
     def __init__(self, parent, command_dict):
@@ -344,7 +269,7 @@ class gen_frame(tk.Frame):
         self.filenamevar = tk.StringVar()
         self.filenamevar.set("dotmaker pattern")
 
-        self.__generate_cmd = command_dict.get("generate")
+        self.__generate_canvass = command_dict.get("generate_canvass")
         self.__save_cmd = command_dict.get("save")
         self._label_font = ("Helvetica", 11)
         self._button_font = ("Helvetica", 11)
@@ -357,9 +282,12 @@ class gen_frame(tk.Frame):
         self.file_name_append = tk.Entry(self, textvariable=self.filenamevar,font=self._label_font,width=15)
 
         self.gen_button = tk.Button(self, text="Generate", font = self._label_font,width=15,\
-            command=self.__generate_cmd)
+            command=self.__generate_full)
         self.save_button = tk.Button(self, text="Save", font=self._label_font,width=15,\
             command=self.__save_cmd)
+
+    def __generate_full(self):
+        self.__generate_canvass(self,"full")
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=150)
@@ -396,7 +324,7 @@ class side_frame(tk.Frame):
         self.circle_param_frame    = circle_param_frame(self)
 
     def __align_subframes(self):
-        self.grid_columnconfigure(0,minsize=400)
+        self.grid_columnconfigure(0,minsize=200)
 
         self.grid_rowconfigure(0,minsize=100)
         self.grid_rowconfigure(1,minsize=100)
@@ -425,12 +353,15 @@ class controller_object:
 
     def __define_vars(self):
         self.__label_font = ("Helvetica", 16)
-        self.img_model = None
+        self.png = None
 
     def __create_frames(self):
         self.root.wm_title("Dot Maker")
+        commands_dict = dict(
+            generate_canvass  = self.generate_canvass,\
+            get_cell_analysis = self.analyze_unit_cell,\
+            save=self.__save)
         self.canvass_master = canvass_master(self.root)
-        commands = dict(generate=self.__generate,save=self.__save)
         self.side_frame     = side_frame(self.root,commands)
 
     def __align_frames(self):
@@ -450,22 +381,34 @@ class controller_object:
                 px_cm = vars_dict.get("px_cm")
                 sep = vars_dict.get("separation")
                 radius = vars_dict.get("radius")
-                filepath = filepath + " r:" + str(radius[0]) + str(radius[1]) + \
-                                  " s:" + str(sep[0]) + str(sep[1]) + \
-                                  " pp:" + str(px_cm[0]) + str(px_cm[1]) + \
-                                  ".png"
 
-                img = self.img_model.get_image()
-                img.save(filepath)
+                filepath = filepath + "_r_:" + str(radius[0]) + str(radius[1])
+                filepath = filepath + "_s_:" + str(sep[0]) + str(sep[1])
+                filepath = filepath + "_pp_:" + str(px_cm[0]) + str(px_cm[1])
+                filepath = filepath + ".png"
+                print(filepath)
+                self.png.save(filepath)
 
-    def __generate(self):
-        container = self.__normalize_vars()
-        png = model.png_maker(container)
-        png.createpng()
-        self.img_model = png.get_img_obj()
-        self.canvass_master.update_canvass(self.img_model)
+    def generate_canvass(self,canvass):
+        if canvass is "cell":
+            update_canvass(self,self.get_unit_cell_png(),canvass)
+        else:
+            update_canvass(self,self.get_whole_png(),canvass)
 
-    def __normalize_vars(self):
+    def get_whole_png(self):
+        container = self.__conglomerate_vars()
+        self.png = model.createpng(container)
+        return self.png
+
+    def get_unit_cell_png(self):
+        container = self.__conglomerate_vars()
+        return model.unit_cell(container).get_image()
+
+    def analyze_unit_cell(self):
+        container = self.__conglomerate_vars()
+        return model.cell_analysis(container)
+
+    def __conglomerate_vars(self):
         vars_dict = self.side_frame.get_vars()
         container = model.image_vars(vars_dict)
         return container
