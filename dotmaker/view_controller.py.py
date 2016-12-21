@@ -18,9 +18,9 @@ def normalize_unit(ureg,prevnumber=None,prevunit=None):
     return str(ureg(prevnumber.get() + prevunit.get()).to("cm").magnitude)
 
 class base_generation_frame(tk.Frame):
-    def __init__(self, parent,command_dict):
+    def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        self.__define_vars(command_dict)
+        self.__define_vars()
         self.__define_buttons()
         self.__align_buttons()
 
@@ -35,8 +35,7 @@ class base_generation_frame(tk.Frame):
                     height=(self.height.get(),self.unit.get()),
                     width=(self.width.get(),self.unit.get()))
 
-    def __define_vars(self,command_dict):
-        self.update_unit_cell_cmd = command_dict.get("generate_canvass")
+    def __define_vars(self):
         self.label_font = ("Helvetica", 11)
         self.entry_font = ("Helvetica", 11)
         self.gen_option = 1
@@ -65,15 +64,11 @@ class base_generation_frame(tk.Frame):
         self.input_lab = tk.Label(self, text="Input file:", font=self.label_font)
         self.input_file_lab = tk.Label(self, textvariable=self.inpath, font=self.label_font, width=15, anchor='e', justify='right')
         #entry:
-        self.width_ent  = tk.Entry(self, font=self.entry_font,width=5,\
-                            textvariable=self.width)
-        self.height_ent = tk.Entry(self,font=self.entry_font,width=5,\
-                            textvariable=self.height)
+        self.width_ent  = tk.Entry(self, textvariable=self.width, font=self.entry_font,width=5)
+        self.height_ent = tk.Entry(self, textvariable=self.height,font=self.entry_font,width=5)
         #Generation Options
-        self.base_but   = tk.Radiobutton(self, text='From base file',font=self.label_font,\
-                          variable = self.gen_option, value=2)
-        self.gen_but    = tk.Radiobutton(self, text='Generated',font=self.label_font,\
-                          variable = self.gen_option, value=1)
+        self.base_but   = tk.Radiobutton(self, text='From base file',font=self.label_font, variable = self.gen_option, value=2)
+        self.gen_but    = tk.Radiobutton(self, text='Generated',font=self.label_font, variable = self.gen_option, value=1)
         #option menu:
         self.dot_menu   = tk.OptionMenu(self, self.temp_unit, \
                     *[chr(956)+'m','mm','cm','in'], command=self.__dim_update)
@@ -119,13 +114,10 @@ class base_generation_frame(tk.Frame):
         self.inpath.set(I)
         self.gen_option=0
 
-    def __update_cell(self):
-        self.update_unit_cell_cmd("cell")
-
 class circle_param_frame(tk.Frame):
-    def __init__(self, parent,command_dict):
+    def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        self.__define_vars(command_dict)
+        self.__define_vars()
         self.__define_buttons()
         self.__align_buttons()
 
@@ -135,8 +127,7 @@ class circle_param_frame(tk.Frame):
                     radius=(self.radius.get(),self.unit.get()),
                     is_positive=self.pos.get())
 
-    def __define_vars(self,command_dict):
-        self.update_unit_cell_cmd = command_dict.get("generate_canvass")
+    def __define_vars(self):
         self.label_font = ("Helvetica", 11)
         self.entry_font = ("Helvetica", 11)
         self.ureg = pint.UnitRegistry()
@@ -151,7 +142,7 @@ class circle_param_frame(tk.Frame):
         self.temp_unit2.set('cm')
 
         self.pixels_per_unit_value = tk.StringVar()
-        self.pixels_per_unit_value.set('1000')
+        self.pixels_per_unit_value.set('200')
 
         self.pixels_per_unit_unit = tk.StringVar()
         self.pixels_per_unit_unit.set('cm')
@@ -171,23 +162,17 @@ class circle_param_frame(tk.Frame):
         self.dot_sep_lab  = tk.Label(self, text="Dot Separation:",font=self.label_font)
         self.dot_rad_lab  = tk.Label(self, text="Dot Radius:",font=self.label_font)
         #entry:
-        self.density_ent  = tk.Entry(self,font=self.entry_font,width=5,\
-                            textvariable=self.pixels_per_unit_value)
-        self.density_ent.bind('<Return>',self.__update_cell)
-        self.dot_sep_ent  = tk.Entry(self, font=self.entry_font,width=5,\
-                            textvariable=self.separation)
-        self.dot_sep_ent.bind('<Return>',self.__update_cell)
-        self.dot_rad_ent  = tk.Entry(self, font=self.entry_font,width=5,\
-                            textvariable=self.radius)
-        self.dot_rad_ent.bind('<Return>',self.__update_cell)
+        self.density_ent  = tk.Entry(self, textvariable=self.pixels_per_unit_value,font=self.entry_font,width=5)
+        self.dot_sep_ent  = tk.Entry(self, textvariable=self.separation, font=self.entry_font,width=5)
+        self.dot_rad_ent  = tk.Entry(self, textvariable=self.radius,font=self.entry_font,width=5)
         #option menu:
         self.dot_menu     = tk.OptionMenu(self, self.temp_unit2, *[chr(956)+'m','mm','cm','in'], command=self.__circle_update)
         self.density_menu = tk.OptionMenu(self, self.temp_unit1, *[chr(956)+'m','mm','cm','in'], command=self.__density_update)
         #radiobuttons:
-        self.pos_but      = tk.Radiobutton(self, text="Positive Print", font=self.label_font, \
-            value=True,  variable=self.pos, command=self.__update_cell)
-        self.neg_but      = tk.Radiobutton(self, text="Negative Print", font=self.label_font, \
-            value=False, variable=self.pos, command=self.__update_cell)
+        self.pos_lab      = tk.Radiobutton(self, text="Positive Print", variable=self.pos, \
+            value=True, font=self.label_font)
+        self.neg_lab      = tk.Radiobutton(self, text="Negative Print", variable=self.pos, \
+            value=False, font=self.label_font)
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=100)
@@ -210,8 +195,8 @@ class circle_param_frame(tk.Frame):
         self.dot_menu.grid(row=1,column=2,sticky='w')
         self.density_menu.grid(row=0,column=2,sticky='w')
 
-        self.pos_but.grid(row=3,column=0,sticky='w')
-        self.neg_but.grid(row=3,column=1,sticky='w')
+        self.pos_lab.grid(row=3,column=0,sticky='w')
+        self.neg_lab.grid(row=3,column=1,sticky='w')
 
     def __density_update(self,update):
         self.pixels_per_unit_value.set(convert_unit(self.ureg, \
@@ -223,47 +208,48 @@ class circle_param_frame(tk.Frame):
         self.separation.set(convert_unit(self.ureg,self.separation,self.unit,update))
         self.unit.set(update)
 
-    def __update_cell(self):
-        self.update_unit_cell_cmd("cell")
-
 class canvass_master(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self,parent)
         self.__define_vars()
         self.__define_buttons()
         self.__align_buttons()
+        self.image1 = tk.PhotoImage()
+        self.image2 = tk.PhotoImage()
+
 
     def __define_vars(self):
         self.image1 = None
         self.image2 = None
         self.label_font = ("Helvetica", 14)
-
-    def update_canvass(self,image,canvass):
-        if canvass is "cell":
-            self.image2 = ImageTk.PhotoImage(image.resize((240,240)))
-            self.canvass2.create_image(120,120, image=self.image2)
-        else:
-            self.image1 = ImageTk.PhotoImage(image.resize((240,240)))
-            self.canvass1.create_image(120,120, image=self.image1)
-
+        
     def __define_buttons(self):
         self.canvass1 = tk.Canvas(self, width=240, height=240, bg='gray')
         self.canvass2 = tk.Canvas(self, width=240, height=240, bg='gray')
         self.print_label  = tk.Label(self, text="Print View",font=self.label_font)
         self.cell_label  = tk.Label(self, text="Cell View",font=self.label_font)
 
+
+    def update_canvass(self,img_model,canvass):
+        if canvass is "cell":
+            self.image2 = ImageTk.PhotoImage(png2.resize((240,240)))
+            self.canvass2.create_image(120,120, image=self.image2)
+        else:
+            self.image1 = ImageTk.PhotoImage(png1.resize((240,240)))
+            self.canvass1.create_image(120,120, image=self.image1)
+
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=330,pad=5)
         self.grid_columnconfigure(1,minsize=330,pad=5)
 
-        self.grid_rowconfigure(0,minsize=30,pad=5)
-        self.grid_rowconfigure(1,minsize=260)
+        self.grid_rowconfigure(0,minsize=260,pad=5)
+        self.grid_rowconfigure(1,minsize=60)
 
-        self.canvass1.grid(row=1,column=0)
-        self.canvass2.grid(row=1,column=1)
+        self.canvass1.grid(row=0,column=0)
+        self.canvass2.grid(row=0,column=1)
 
-        self.cell_label.grid(row=0,column=1)
-        self.print_label.grid(row=0,column=0)
+        self.var_frame.grid(row=1,column=1)
+        self.print_frame.grid(row=1,column=0)
 
 class gen_frame(tk.Frame):
     def __init__(self, parent, command_dict):
@@ -300,11 +286,11 @@ class gen_frame(tk.Frame):
         self.file_name_append = tk.Entry(self, textvariable=self.filenamevar,font=self._label_font,width=15)
 
         self.gen_button = tk.Button(self, text="Generate", font = self._label_font,width=15,\
-            command=self.__generate)
+            command=self.__generate_full)
         self.save_button = tk.Button(self, text="Save", font=self._label_font,width=15,\
             command=self.__save_cmd)
 
-    def __generate(self):
+    def __generate_full(self):
         self.__generate_canvass(self,"full")
 
     def __align_buttons(self):
@@ -338,8 +324,8 @@ class side_frame(tk.Frame):
 
     def __define_subframes(self,command_dict):
         self.generate_frame        = gen_frame(self,command_dict)
-        self.base_generation_frame = base_generation_frame(self,command_dict)
-        self.circle_param_frame    = circle_param_frame(self,command_dict)
+        self.base_generation_frame = base_generation_frame(self)
+        self.circle_param_frame    = circle_param_frame(self)
 
     def __align_subframes(self):
         self.grid_columnconfigure(0,minsize=200)
@@ -360,22 +346,30 @@ class side_frame(tk.Frame):
         dict2 = self.circle_param_frame.get_var_params()
         return {**dict1, **dict2}
 
+
 class controller_object:
     def __init__(self):
         # All other 'global variabels' are initialized in the constructor.
         self.root = tk.Tk()
+        self.__define_vars()
         self.__create_frames()
         self.__align_frames()
         self.root.mainloop()
 
+    def __define_vars(self):
+        self.__label_font = ("Helvetica", 16)
+        self.png = None
+
     def __create_frames(self):
         self.root.wm_title("Dot Maker")
+        self.canvas_master = canvass_master(self.root)
+        self.side_frame     = side_frame(self.root,self.__generate)
         commands_dict = dict(
             generate_canvass  = self.generate_canvass,\
             get_cell_analysis = self.analyze_unit_cell,\
             save=self.__save)
         self.canvass_master = canvass_master(self.root)
-        self.side_frame     = side_frame(self.root,commands_dict)
+        self.side_frame     = side_frame(self.root,commands)
 
     def __align_frames(self):
         self.root.grid_columnconfigure(0,minsize=300)
@@ -383,7 +377,7 @@ class controller_object:
 
         self.root.grid_rowconfigure(0,minsize=100)
 
-        self.canvass_master.grid(row=0, column=0)
+        self.canvas_master.grid(row=0, column=0)
         self.side_frame.grid(row=0,column=1)
 
     def __save(self):
@@ -394,19 +388,19 @@ class controller_object:
                 px_cm = vars_dict.get("px_cm")
                 sep = vars_dict.get("separation")
                 radius = vars_dict.get("radius")
+                filepath = filepath + " r:" + str(radius[0]) + str(radius[1]) + \
+                                  " s:" + str(sep[0]) + str(sep[1]) + \
+                                  " pp:" + str(px_cm[0]) + str(px_cm[1]) + \
+                                  ".png"
 
-                filepath = filepath + "_r_:" + str(radius[0]) + str(radius[1])
-                filepath = filepath + "_s_:" + str(sep[0]) + str(sep[1])
-                filepath = filepath + "_pp_:" + str(px_cm[0]) + str(px_cm[1])
-                filepath = filepath + ".png"
-                print(filepath)
-                self.png.save(filepath)
+                img = self.img_model.get_image()
+                img.save(filepath)
 
     def generate_canvass(self,canvass):
         if canvass is "cell":
-            self.canvass_master.update_canvass(self,self.get_unit_cell_png(),canvass)
+            update_canvass(self,self.get_unit_cell_png(),canvass)
         else:
-            self.canvass_master.update_canvass(self,self.get_whole_png(),canvass)
+            update_canvass(self,self.get_whole_png(),canvass)
 
     def get_whole_png(self):
         container = self.__conglomerate_vars()
