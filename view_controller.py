@@ -172,19 +172,19 @@ class circle_param_frame(tk.Frame):
         self.dot_rad_lab  = tk.Label(self, text="Dot Radius:",font=self.label_font)
         #entry:
         self.density_ent  = tk.Entry(self,font=self.entry_font,width=5,\
-                            textvariable=self.pixels_per_unit_value,command=self.__update_cell())
+                            textvariable=self.pixels_per_unit_value,command=self.__update_cell)
         self.dot_sep_ent  = tk.Entry(self, font=self.entry_font,width=5,\
-                            textvariable=self.separation,command=self.__update_cell())
+                            textvariable=self.separation,command=self.__update_cell)
         self.dot_rad_ent  = tk.Entry(self, font=self.entry_font,width=5,\
-                            textvariable=self.radius,command=self.__update_cell())
+                            textvariable=self.radius,command=self.__update_cell)
         #option menu:
         self.dot_menu     = tk.OptionMenu(self, self.temp_unit2, *[chr(956)+'m','mm','cm','in'], command=self.__circle_update)
         self.density_menu = tk.OptionMenu(self, self.temp_unit1, *[chr(956)+'m','mm','cm','in'], command=self.__density_update)
         #radiobuttons:
-        self.pos_lab      = tk.Radiobutton(self, text="Positive Print", font=self.label_font, \
-            value=True,  variable=self.pos, command=self.__update_cell())
-        self.neg_lab      = tk.Radiobutton(self, text="Negative Print", font=self.label_font, \
-            value=False, variable=self.pos, command=self.__update_cell())
+        self.pos_but      = tk.Radiobutton(self, text="Positive Print", font=self.label_font, \
+            value=True,  variable=self.pos, command=self.__update_cell)
+        self.neg_but      = tk.Radiobutton(self, text="Negative Print", font=self.label_font, \
+            value=False, variable=self.pos, command=self.__update_cell)
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=100)
@@ -207,8 +207,8 @@ class circle_param_frame(tk.Frame):
         self.dot_menu.grid(row=1,column=2,sticky='w')
         self.density_menu.grid(row=0,column=2,sticky='w')
 
-        self.pos_lab.grid(row=3,column=0,sticky='w')
-        self.neg_lab.grid(row=3,column=1,sticky='w')
+        self.pos_but.grid(row=3,column=0,sticky='w')
+        self.neg_but.grid(row=3,column=1,sticky='w')
 
     def __density_update(self,update):
         self.pixels_per_unit_value.set(convert_unit(self.ureg, \
