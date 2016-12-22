@@ -119,9 +119,6 @@ class base_generation_frame(tk.Frame):
         self.inpath.set(I)
         self.gen_option=0
 
-    def __update_cell(self):
-        self.update_unit_cell_cmd("cell")
-
 class circle_param_frame(tk.Frame):
     def __init__(self, parent,command_dict):
         tk.Frame.__init__(self, parent)
@@ -305,7 +302,7 @@ class gen_frame(tk.Frame):
             command=self.__save_cmd)
 
     def __generate(self):
-        self.__generate_canvass(self,"full")
+        self.__generate_canvass("full")
 
     def __align_buttons(self):
         self.grid_columnconfigure(0,minsize=150)
@@ -404,9 +401,9 @@ class controller_object:
 
     def generate_canvass(self,canvass):
         if canvass is "cell":
-            self.canvass_master.update_canvass(self,self.get_unit_cell_png(),canvass)
+            self.canvass_master.update_canvass(self.get_unit_cell_png(),canvass)
         else:
-            self.canvass_master.update_canvass(self,self.get_whole_png(),canvass)
+            self.canvass_master.update_canvass(self.get_whole_png(),canvass)
 
     def get_whole_png(self):
         container = self.__conglomerate_vars()
@@ -415,7 +412,8 @@ class controller_object:
 
     def get_unit_cell_png(self):
         container = self.__conglomerate_vars()
-        return model.unit_cell(container).get_image()
+        unit_cell = model.unit_cell(container)
+        return unit_cell.get_image()
 
     def analyze_unit_cell(self):
         container = self.__conglomerate_vars()
