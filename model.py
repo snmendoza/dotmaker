@@ -35,7 +35,7 @@ class unit_cell:
         self.__define_mask()
 
     def __define_mask(self):
-        sep      = self.s*math.sqrt(2)
+        sep      = self.s*math.sqrt(2)  #
         self.subdiv  = int(round(sep,0))
         self.mask = PIL.Image.new('RGBA', (self.subdiv*2,self.subdiv*2), self.img_alpha)
 
