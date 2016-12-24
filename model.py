@@ -9,11 +9,7 @@ import time
 from copy import deepcopy
 from tkinter import *
 import operator
-# Class cell_analysis:
-#-update analysis to work with s > r
-#-update analysis to work with unit_cell class
-# Class unit cell:
-# confirm that filling in circles is done right
+
 class unit_cell:
     def __init__(self, container):
         self.__define_vars(container)
@@ -31,7 +27,6 @@ class unit_cell:
 
         self.circle = (0,0,0,circ*255)
         self.img_alpha = (0,0,0,back*255)
-        print(str(self.circle) + "alpha" + str(self.img_alpha) + " p:" + str(self.p))
         self.__define_mask()
 
     def __define_mask(self):
