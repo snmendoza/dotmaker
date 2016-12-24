@@ -5,7 +5,7 @@ import PIL.Image
 from PIL import ImageTk, Image
 import pint
 import math
-import model as model
+import model.Model_Controller as model
 ##
 #notes:
 #-analyze
@@ -357,7 +357,7 @@ class side_frame(tk.Frame):
         dict2 = self.circle_param_frame.get_var_params()
         return {**dict1, **dict2}
 
-class controller_object:
+class View_Controller:
     def __init__(self):
         # All other 'global variabels' are initialized in the constructor.
         self.root = tk.Tk()
@@ -400,26 +400,10 @@ class controller_object:
                 self.png.save(filepath)
 
     def generate_canvass(self,canvass):
-        if canvass is "cell":
-            self.canvass_master.update_canvass(self.get_unit_cell_png(),canvass)
-        else:
-            self.canvass_master.update_canvass(self.get_whole_png(),canvass)
+        self.canvass_master.update_canvass(self.get_png(canvass),canvass)
 
-    def get_whole_png(self):
-        container = self.__conglomerate_vars()
-        self.png = model.createpng(container)
-        return self.png
-
-    def get_unit_cell_png(self):
-        container = self.__conglomerate_vars()
-        unit_cell = model.unit_cell(container)
-        return unit_cell.get_image()
+    def get_png(self,png_type):
+        return model.single_pattern(pattern_type=png_type,params=self.side_frame.get_vars()):
 
     def analyze_unit_cell(self):
-        container = self.__conglomerate_vars()
-        return model.cell_analysis(container)
-
-    def __conglomerate_vars(self):
-        vars_dict = self.side_frame.get_vars()
-        container = model.image_vars(vars_dict)
-        return container
+        return model.anayze_unit_cell(self.side_frame.get_vars()):
