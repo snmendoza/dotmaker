@@ -10,7 +10,7 @@ from copy import deepcopy
 from tkinter import *
 import operator
 
-class unit_cell:
+class Unit_cell:
     def __init__(self, container):
         self.__define_vars(container)
         self.__create_cell()
@@ -55,7 +55,7 @@ class unit_cell:
         temp = PIL.Image.new('RGBA', (self.subdiv*2,self.subdiv*2),0)
         return PIL.Image.alpha_composite(temp, self.mask)
 
-class cell_analysis:
+class Cell_analysis:
     def __init__(self, container):
         self.__set_values__(var_dict)
 
@@ -95,7 +95,7 @@ class cell_analysis:
 
         return alpha / (255*xdim*ydim)
 
-class image_vars:
+class Image_vars:
     def __init__(self,var_dict):
         self.ureg = pint.UnitRegistry()
         self.default = dict(height=("2","cm"),\
@@ -112,11 +112,11 @@ class image_vars:
     def __set_values(self,dictionary_input):
         px_cm_conversion =   float(self.__normalize_unit(dictionary_input.get("px_cm")))
         self.default=dict( \
-        height=int(int(self.__normalize_unit(dictionary_input.get("height")))*px_cm_conversion), \
-        width=int(int(self.__normalize_unit(dictionary_input.get("width")))*px_cm_conversion), \
-        separation=float(self.__normalize_unit(dictionary_input.get("separation")))*px_cm_conversion,\
-        radius=float(self.__normalize_unit(dictionary_input.get("radius")))*px_cm_conversion,\
-        is_positive=dictionary_input.get("is_positive"))
+            height=int(int(self.__normalize_unit(dictionary_input.get("height")))*px_cm_conversion), \
+            width=int(int(self.__normalize_unit(dictionary_input.get("width")))*px_cm_conversion), \
+            separation=float(self.__normalize_unit(dictionary_input.get("separation")))*px_cm_conversion,\
+            radius=float(self.__normalize_unit(dictionary_input.get("radius")))*px_cm_conversion,\
+            is_positive=dictionary_input.get("is_positive"))
 
     def __normalize_unit(self,dict_val):
         return str(self.ureg(dict_val[0] + dict_val[1]).to("cm").magnitude)

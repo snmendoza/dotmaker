@@ -1,13 +1,30 @@
-import Pattern_Model as model
+import model.PatternModel as model
 
-def single_pattern(pattern_type=pattern,params=params):
+class ModelControl:
+    def __init__(self,actionControl=None,paramControl=None,displayControl=None):
+        self.action=actionControl
+        self.params=paramControl
+        self.display=displayControl
+
+    def updateUnitCell(self,printType):
+        if printType:
+            param = self.params.getParams()
+            png = single_pattern("cell",param)
+
+    def updatePrintView(self):
+        pass
+
+    def getPrintAnalysis(self):
+        pass
+
+def single_pattern(pattern_type,params):
     if pattern_type is "cell":
         unit_cell = model.unit_cell(get_normalized_vars(params))
         return unit_cell.get_image()
     else:
         return model.createpng(get_normalized_vars(params))
 
-def multi_pattern(startvars=start,endvars=end,divvars=div,globalvars=glob):
+def multi_pattern(startvars,endvars,globalvars):
     #example of input dictionaries
     glob   =dict(height=("3","cm"),\
                  width=("3","cm"),\
@@ -30,9 +47,12 @@ def multi_pattern(startvars=start,endvars=end,divvars=div,globalvars=glob):
 
     pass
 
-def anayze_unit_cell(params=params):
+def anayze_unit_cell(params):
     unit_cell = model.unit_cell(get_normalized_vars(params))
     return (unit_cell.get_theoretical_opacity(),unit_cell.get_numerical_opacity())
 
 def __get_normalized_vars__(params):
     return model.Image_vars(params)
+
+def normalize_unit(ureg,prevnumber=None,prevunit=None):
+    return str(ureg(prevnumber.get() + prevunit.get()).to("cm").magnitude)
