@@ -115,10 +115,10 @@ class ActionFrame(tk.Frame):
 
     def __defineButtons__(self):
         self.saveButton     = tk.Button(self,text="Save",font=self.bigFont,\
-                            width=15)
+                            width=15,command=self.control.save)
 
         self.generateButton = tk.Button(self,text="Update Image",font=self.bigFont,\
-                            width=15)
+                            width=15,command=self.control.generate)
 
     def __alignButtons__(self):
         self.grid_columnconfigure(0,minsize=300)
@@ -157,7 +157,7 @@ class ControlFrame(ParamFrameDefaults):
 
         self.label.grid(row=0,column=0,sticky='w')
         self.singleParambutton.grid(row=0,column=1,sticky='w')
-        
+
     def changeButton(self,button):
         self.method(button)
         if button:
@@ -177,11 +177,13 @@ class CanvassFrame(ParamFrameDefaults):
 
     def __defineVars__(self,controller):
         self.control = controller
+        self.control.update = self.update
         self.label_font = ("Helvetica", 14)
 
     def __defineButtons__(self):
-        self.canvass1 = tk.Canvas(self, width=240, height=240, bg='gray')
-        self.canvass2 = tk.Canvas(self, width=240, height=240, bg='gray')
+        params   = dict(width=240, height=240, bg='gray')
+        self.canvass1 = tk.Canvas(self,**params)
+        self.canvass2 = tk.Canvas(self,**params)
         self.print_label  = tk.Label(self, text="Print View",font=self.label_font)
         self.cell_label   = tk.Label(self, text="Cell View",font=self.label_font)
 
@@ -197,6 +199,19 @@ class CanvassFrame(ParamFrameDefaults):
 
         self.cell_label.grid(row=0,column=1)
         self.print_label.grid(row=0,column=0)
+
+    def update(self,image,canvass):
+        img = ImageTk.PhotoImage(image.resize((243,243)))
+        if canvass is "cell":
+            self.cell = img
+            self.canvass2.delete("all")
+            self.canvass2.create_image(120,120,image=self.cell)
+            self.canvass2.update_idletasks()
+        else:
+            self.img = img
+            self.canvass1.delete("all")
+            self.canvass1.create_image(120,120,image=self.img)
+            self.canvass1.update_idletasks()
 
 class SideFrame(tk.Frame):
     def __init__(self, parent, controller):

@@ -20,9 +20,9 @@ class SingleParamFrame(ParamFrameDefaults):
 
     def __defineButtons__(self):
         #labels:
-        self.column0.append(tk.Label(self, text="Document Parameters",font=self.bigFont))
-        self.column0.append(tk.Label(self, text="Document Width:",**self.labelOptions))
-        self.column0.append(tk.Label(self, text="Document height:",**self.labelOptions))
+        self.column0.append(tk.Label(self, text="Print Parameters",font=self.bigFont))
+        self.column0.append(tk.Label(self, text="Print Width:",**self.labelOptions))
+        self.column0.append(tk.Label(self, text="Print height:",**self.labelOptions))
         self.column0.append(tk.Label(self, text="Dot Density:",**self.labelOptions))
 
         self.column3.append(tk.Label(self, text="Pattern Parameters",font=self.bigFont))

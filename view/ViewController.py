@@ -148,7 +148,7 @@ class MultiPrintController(ParamAccess):
 
     def getParams(self):
         pass
-        
+
 class AnalysisController(ParamAccess):
     def __init__(self):
         super(AnalysisController, self).__init__()
@@ -169,11 +169,12 @@ class PatternController(ParamAccess):
             self.varDict = dict(patternType = tk.BooleanVar())
 
 class InputController(ParamAccess):
-    def __init__(self):
+    def __init__(self,update):
         super(InputController, self).__init__()
-        self.__defineVars__()
+        self.__defineVars__(update)
 
-    def __defineVars__(self):
+    def __defineVars__(self,update):
+        self.update = update
         self.varDict = dict(InputType= tk.IntVar(),\
                             InputImage=None)
         self.canvas = None
@@ -192,6 +193,8 @@ class InputController(ParamAccess):
             img = self.getValue("InputImage").copy()
             self.imageMethod(img)
 
+        self.update()
+
     def createCanvas(self,frame,canvassParams,canvassMethods):
         self.imageMethod = canvassMethods["imageMethod"]
         self.rectangleMethod = canvassMethods["rectangleMethod"]
@@ -200,6 +203,7 @@ class InputController(ParamAccess):
 
     def loadImage(self):
         img = PIL.Image.open(dialog.askopenfilename(**self.file_opt))
+        img = img.convert("RGBA")
         self.setValue("InputImage",img.copy())
 
 class SideController:
@@ -211,16 +215,16 @@ class SideController:
         self.controllers = dict(singlePrintControl=SinglePrintController(self.updateUnitCell),\
                                multiPrintControl=MultiPrintController(self.updateUnitCell),\
                                analysisControl=AnalysisController(),\
-                               inputControl=InputController(),\
+                               inputControl=InputController(self.updateUnitCell),\
                                patternControl=PatternController())
 
-        self.singleDefaults = dict(radius='2',separation='4',density='500',printType=False,documentHeight='3',\
-            documentWidth='3',circleUnit='cm',densityUnit='cm',documentUnit='cm')
+        self.singleDefaults = dict(radius='0.1',separation='0.3',density='500',printType=False,documentHeight='3',\
+            documentWidth='3',circleUnit='mm',densityUnit='cm',documentUnit='cm')
 
         self.printDefaults = dict(patternType=True)
         self.inputDefaults = dict(InputType=1)
-        self.multiDefaults = dict(radius1='2',radius2='3',separation1='4',\
-            separation2='5',circleUnit='cm',\
+        self.multiDefaults = dict(radius1='0.05',radius2='0.1',separation1='0.4',\
+            separation2='0.3',circleUnit='mm',\
             density1='500',density2="600",densityUnit='cm',printType=False,\
             documentHeight='11',documentWidth='8.5',documentUnit='in',\
             printHeight='3',printWidth='3',printUnit='cm',printMargin='0.1',marginUnit='cm')
@@ -237,6 +241,15 @@ class SideController:
     def getController(self,controller):
         return self.controllers.get(controller)
 
+    def getImage(self):
+        if self.controllers["inputControl"].getValue("InputType").get()==2:
+            return self.controllers["inputControl"].getValue("InputImage")
+        else:
+            return None
+
+    def getParamType(self):
+        return self.controllers["patternControl"].getValue("patternType").get()
+
     def getParams(self):
         if self.controllers["patternControl"].getValue("patternType").get():
              return self.controllers["singlePrintControl"].getParams()
@@ -249,26 +262,23 @@ class SideController:
 
 class CanvassController:
     def __init__(self, modelControl):
-        self.__define_vars()
+        self.__defineVars__(modelControl)
 
-    def __define_vars(self):
-        self.image1 = None
-        self.image2 = None
-        self.label_font = ("Helvetica", 14)
+    def __defineVars__(self,modelControl):
+        self.modelControl = modelControl
 
-    def update_canvass(self,image,canvass):
-        if canvass is "cell":
-            pass
-            #self.image2 = ImageTk.PhotoImage(image.resize((240,240)))
-            #self.canvass2.create_image(120,120, image=self.image2)
-        else:
-            pass
-            #self.image1 = ImageTk.PhotoImage(image.resize((240,240)))
-            #self.canvass1.create_image(120,120, image=self.image1)
+    def updateCanvass(self,image,canvass):
+        self.update(image,canvass)
 
 class ActionController:
     def __init__(self,modelControl):
-        pass
+        self.model = modelControl
+
+    def save(self):
+        self.saveMethod()
+
+    def generate(self):
+        self.model.updatePrintView()
 
 class MainController:
     def __init__(self):
