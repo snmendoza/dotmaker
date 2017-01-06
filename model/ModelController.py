@@ -11,7 +11,7 @@ class ModelControl:
     def updateUnitCell(self,printType):
         if printType:
             self.param = single_print_dict_normalize(self.params.getParams())
-            self.param["input_file"]= self.params.getImage()
+            self.param["input_file"] = self.params.getImage()
             cell = model.Unit_Cell(self.param)
             self.display.updateCanvass(cell.get_image(),"cell")
         else:

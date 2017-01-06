@@ -109,5 +109,4 @@ def createPng(varDict):
         for top in range(0, size[1], tileheight):
               m.paste(tile_mask, (left, top),mask=tile_mask)
 
-    preimg.paste(m,(0,0),mask=m)
-    return preimg
+    return PIL.Image.alpha_composite(preimg,m)
