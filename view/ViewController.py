@@ -275,7 +275,9 @@ class ActionController:
         self.model = modelControl
 
     def save(self):
-        self.saveMethod()
+        img = self.model.save()
+        filename = dialog.asksaveasfilename()
+        img.save(filename + ".png")
 
     def generate(self):
         self.model.updatePrintView()

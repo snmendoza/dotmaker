@@ -25,6 +25,8 @@ class ModelControl:
     def getPrintAnalysis(self):
         pass
 
+    def save(self):
+        return self.img.copy()
 
 def anayze_unit_cell(params):
     unit_cell = model.unit_cell(get_normalized_vars(params))

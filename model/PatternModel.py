@@ -90,7 +90,7 @@ class Cell_analysis:
 def __getPreImage(varDict):
     size = (varDict.get("width"), varDict.get("height"))
     if varDict.get("input_file") == None:
-        img = PIL.Image.new('RGBA', size, 255)
+        img = PIL.Image.new('RGBA', size, (0,0,0,255))
     else:
         img = varDict["input_file"].copy()
         img = img.convert("RGBA")
@@ -103,10 +103,12 @@ def createPng(varDict):
     cell = Unit_Cell(varDict)
     tile_mask = cell.get_mask()
     tilewidth, tileheight = tile_mask.size
+    main = PIL.Image.new('RGBA', size, 255)
     m = PIL.Image.new('RGBA', size ,255)
     preimg = __getPreImage(varDict)
     for left in range(0, size[0], tilewidth):
         for top in range(0, size[1], tileheight):
               m.paste(tile_mask, (left, top),mask=tile_mask)
 
-    return PIL.Image.alpha_composite(preimg,m)
+    main.paste(preimg,(0,0),m)
+    return main
