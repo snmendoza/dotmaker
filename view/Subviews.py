@@ -32,27 +32,32 @@ class SingleParamFrame(ParamFrameDefaults):
         #entry:
         #Document Entrys
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('documentHeight')))
+                            textvariable=self.control.getDocumentV('printHeight')))
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('documentWidth')))
+                            textvariable=self.control.getDocumentV('printWidth')))
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('density')))
+                            textvariable=self.control.getPatternV('density')))
         self.column4.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('separation')))
+                            textvariable=self.control.getPatternV('separation')))
         self.column4.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('radius')))
+                            textvariable=self.control.getPatternV('radius')))
         #option menu:
-        self.column5.append(self.control.makeUnitMenu(self,basevar="circleUnit",\
-                                  boundvar=["radius","separation"],values=self.unitMenuOptions))
-        self.column2.append(self.control.makeUnitMenu(self,basevar="documentUnit",\
-                                  boundvar=["documentHeight","documentWidth"],values=self.unitMenuOptions))
-        self.column2.append(self.control.makeUnitMenu(self,basevar="densityUnit",\
-                                  boundvar=["density"],values=self.unitMenuOptions))
+        self.column5.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('circleUnit'),\
+                                  boundvar=[self.control.getPatternKV('radius'),\
+                                  self.control.getPatternKV('separation')],\
+                                  values=self.unitMenuOptions))
+        self.column2.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV("printUnit"),\
+                                  boundvar=[self.control.getDocumentKV("printHeight"),\
+                                  self.control.getDocumentKV("printWidth")],\
+                                  values=self.unitMenuOptions))
+        self.column2.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('densityUnit'),\
+                                  boundvar=[self.control.getPatternKV('density')],values=self.unitMenuOptions))
 
         buttons      = self.control.makeBooleanButtons(self,\
-                                buttons=dict(one=dict(value=True,param=self.typeButtonOptions[0]),\
-                                             two=dict(value=False,param=self.typeButtonOptions[1])),\
-                                method=self.__button_forget__,variable="printType")
+                                buttonParam=[dict(boundBool=False,param=self.typeButtonOptions[0]),\
+                                             dict(boundBool=True,param=self.typeButtonOptions[1])],\
+                                boundvar=self.control.getDocumentKV('printType'),\
+                                uicommand=self.__button_forget__)
         self.typePos = buttons[0]
         self.typeNeg = buttons[1]
 
@@ -95,7 +100,7 @@ class SingleParamFrame(ParamFrameDefaults):
             self.column4[i].grid(row=i+2,column=4,sticky='w')
         #column5 menu
         self.column5[0].grid(row=2,rowspan=2,column=5,sticky='w')
-        self.__button_forget__(self.control.getValue("printType"))
+        self.__button_forget__(self.control.getDocumentV("printType"))
 
     def __button_forget__(self,btype):
         self.control.update()
@@ -135,54 +140,68 @@ class MultiParamFrame(ParamFrameDefaults):
         self.column0.append(tk.Label(self, text="Print Margin:",**self.labelOptions))
 
         self.column3.append(tk.Label(self, text="Print Parameters",font=self.bigFont))
-        self.column3.append(tk.Checkbutton(self, text="Dot Density:",variable=self.control.checkVar("density"),\
-            **self.checkButtonOptions,onvalue="density", offvalue="0",command=lambda: self.control.checkButtonCall("density")))
-        self.column3.append(tk.Checkbutton(self, text="Radius:",variable=self.control.checkVar("radius"),\
-            **self.checkButtonOptions,onvalue="radius", offvalue="0",command=lambda: self.control.checkButtonCall("radius")))
-        self.column3.append(tk.Checkbutton(self, text="Separation:",variable=self.control.checkVar("separation"),\
-            **self.checkButtonOptions,onvalue="separation", offvalue="0",command=lambda: self.control.checkButtonCall("separation")))
+
+        self.column3.append(tk.Checkbutton(self, text="Dot Density:",\
+            variable=self.control.getDocumentV("densitySelect"),\
+            **self.checkButtonOptions,onvalue=True, offvalue=False,\
+            command=lambda: self.control.checkButtonCall("density")))
+        self.column3.append(tk.Checkbutton(self, text="Radius:",\
+            variable=self.control.getDocumentV("radiusSelect"),\
+            **self.checkButtonOptions,onvalue=True, offvalue=False,\
+            command=lambda: self.control.checkButtonCall("radius")))
+        self.column3.append(tk.Checkbutton(self, text="Separation:",\
+            variable=self.control.getDocumentV("separationSelect"),\
+            **self.checkButtonOptions,onvalue=True, offvalue=False,\
+            command=lambda: self.control.checkButtonCall("separation")))
 
         self.column4.append(tk.Label(self, text="Start",**self.shortLabelOptions))
         self.column5.append(tk.Label(self, text="End",**self.shortLabelOptions))
 
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('documentWidth')))
+                            textvariable=self.control.getDocumentV('documentWidth')))
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('documentHeight')))
+                            textvariable=self.control.getDocumentV('documentHeight')))
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('printWidth')))
+                            textvariable=self.control.getDocumentV('printWidth')))
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('printHeight')))
+                            textvariable=self.control.getDocumentV('printHeight')))
         self.column1.append(tk.Entry(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('printMargin')))
+                            textvariable=self.control.getDocumentV('printMargin')))
 
         self.column4.append(tk.Entry(self,**self.shortEntryOptions,\
-                            textvariable=self.control.getValue('density1')))
+                            textvariable=self.control.getPatternV(1,'density')))
         self.column4.append(tk.Entry(self,**self.shortEntryOptions,\
-                            textvariable=self.control.getValue('radius1')))
+                            textvariable=self.control.getPatternV(1,'radius')))
         self.column4.append(tk.Entry(self,**self.shortEntryOptions,\
-                            textvariable=self.control.getValue('separation1')))
+                            textvariable=self.control.getPatternV(1,'separation')))
 
         self.column5.append(tk.Entry(self,**self.shortEntryOptions,\
-                            textvariable=self.control.getValue('density2')))
+                            textvariable=self.control.getPatternV(2,'density')))
         self.column5.append(tk.Entry(self,**self.shortEntryOptions,\
-                            textvariable=self.control.getValue('radius2')))
+                            textvariable=self.control.getPatternV(2,'radius')))
         self.column5.append(tk.Entry(self,**self.shortEntryOptions,\
-                            textvariable=self.control.getValue('separation2')))
+                            textvariable=self.control.getPatternV(2,'separation')))
 
-        self.column2.append(self.control.makeUnitMenu(self,basevar="documentUnit",\
-                                  boundvar=["documentWidth","documentHeight"],values=self.unitMenuOptions))
-        self.column2.append(self.control.makeUnitMenu(self,basevar="printUnit",\
-                                  boundvar=["printHeight","printWidth","printMargin"],values=self.unitMenuOptions))
-        self.column6.append(self.control.makeUnitMenu(self,basevar="densityUnit",\
-                                  boundvar=["density1","density2"],values=self.unitMenuOptions))
-        self.column6.append(self.control.makeUnitMenu(self,basevar="circleUnit",\
-                                  boundvar=["radius1","radius2","separation2","separation1"],values=self.unitMenuOptions))
+        self.column2.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('documentUnit'),\
+                                  boundvar=[self.control.getDocumentKV('documentWidth'),self.control.getDocumentKV('documentHeight')],\
+                                  values=self.unitMenuOptions))
+        self.column2.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('printUnit'),\
+                                  boundvar=[self.control.getDocumentKV('printWidth'),self.control.getDocumentKV('printHeight'),\
+                                        self.control.getDocumentKV('printMargin')],\
+                                  values=self.unitMenuOptions))
+        self.column6.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('densityUnit'),\
+                                  boundvar=[self.control.getPatternKV(1,'density'),self.control.getPatternKV(2,'density')],\
+                                  values=self.unitMenuOptions))
+        self.column6.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('circleUnit'),\
+                                  boundvar=[self.control.getPatternKV(1,"radius"),self.control.getPatternKV(2,"radius"),\
+                                        self.control.getPatternKV(1,"separation"),self.control.getPatternKV(2,"separation")],\
+                                  values=self.unitMenuOptions))
 
         buttons      = self.control.makeBooleanButtons(self,\
-                                buttons=dict(one=dict(value=False,param=self.typeButtonOptions[0]),\
-                                             two=dict(value=True,param=self.typeButtonOptions[1])),\
-                                method=self.__button_forget__,variable="printType")
+                                buttonParam=[dict(boundBool=False,param=self.typeButtonOptions[0]),\
+                                             dict(boundBool=True,param=self.typeButtonOptions[1])],\
+                                boundvar=self.control.getDocumentKV('printType'),\
+                                uicommand=self.__button_forget__)
         self.typePos = buttons[0]
         self.typeNeg = buttons[1]
 

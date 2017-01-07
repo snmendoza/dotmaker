@@ -15,37 +15,42 @@ def convert_unit(ureg,prevvar=None,prevunit=None,newunit=None):
     newvar = str(ureg(prevvar.get() + prevunit.get()).to(newunit).magnitude)
     return newvar
 
-def normalize_unit(ureg,prevnumber=None,prevunit=None):
-    return str(ureg(prevnumber.get() + prevunit.get()).to("cm").magnitude)
+def dictSet(dict1, dict2):
+    for key in dict1.keys():
+        if key in dict2.keys():
+            dict2[key].set(dict1[key])
 
-class ParamAccess:
+class WidgetVarIntegration:
     def __init__(self):
-        self.varDict = None
+        self.linkedVariables = {}
         self.unitMenuControllers     = []
         self.booleanValueControllers = []
 
-    def setTkValue(self,key,value):
-        if key in self.varDict:
-            self.varDict[key].set(value)
-
-    def setValue(self,key,value):
-        if key in self.varDict:
-            self.varDict[key]=value
-
-    def getValue(self,key):
-        return self.varDict[key]
-
     def makeUnitMenu(self,frame,basevar=None,boundvar=None,values=None):
-        subdict = { key:value for key,value in self.varDict.items() if key in boundvar }
-        uControl = UnitValueController(start=self.varDict[basevar],variables=subdict)
-        self.unitMenuControllers.append(uControl)
-        return tk.OptionMenu(frame,self.varDict[basevar],*values,command=uControl.updateUnit)
+        '''makes a unit menu based on a base tkvariable and desired bound fields
+                basevar= the base tkvariable
+                boundvar= bound tkvariables to update when basevar changes
+                values= units selectable from the menu'''
+        for entry in boundvar:
+            self.linkedVariables[entry[0]] = entry[1]
 
-    def makeBooleanButtons(self,frame,buttons=None,method=None,variable=""):
-        b = []
-        for entry in buttons.keys():
-            cont = BoolValueController(self.varDict[variable],buttons[entry]["value"],method)
-            b.append(tk.Button(frame,**buttons[entry]["param"],command=cont.updateValue))
+        uControl = UnitValueController(start=basevar,boundvar=boundvar)
+        self.unitMenuControllers.append(uControl)
+        return tk.OptionMenu(frame,basevar,*values,command=uControl.updateUnit)
+
+    def makeBooleanButtons(self,frame,buttonParam=None,boundvar=None,uicommand=None):
+        '''makes a boolean button pair based on a base tkvariable and desired bound fields
+                buttonParam= a list of dicts. inner dict needs primitive keys
+                        boundBool = the beginning state.
+                        param = a dict of params for the tk.Button
+                    outer list should contain only two inner dicts
+                boundvar= bound tkvariable to update when clicked
+                uicommand= a ui command to call when button is clicked'''
+        b=[]
+        self.linkedVariables[boundvar[0]] = boundvar[1]
+        for e in range(len(buttonParam)):
+            cont = BoolValueController(boundvar[1],buttonParam[e]["boundBool"],uicommand)
+            b.append(tk.Button(frame,**buttonParam[e]["param"],command=cont.updateValue))
             self.booleanValueControllers.append(cont)
 
         return b
@@ -61,9 +66,12 @@ class BoolValueController:
         self.method(self.var.get())
 
 class UnitValueController:
-    def __init__(self,start=None,variables=None):
+    def __init__(self,start=None,boundvar=None):
         self.ureg = pint.UnitRegistry()
-        self.variables = variables
+        self.variables = {}
+        for entry in boundvar:
+            self.variables[entry[0]] = entry[1]
+
         self.startUnit = tk.StringVar()
         self.startUnit.set(start.get())
 
@@ -75,83 +83,141 @@ class UnitValueController:
 
         self.startUnit.set(unit)
 
-class SinglePrintController(ParamAccess):
-    def __init__(self,unitCellUpdate):
-        super(SinglePrintController, self).__init__()
-        self.ureg = pint.UnitRegistry()
-        self.__defineVars__(unitCellUpdate)
+class SinglePattern:
+    def __init__(self):
+        super(SinglePattern, self).__init__()
+        self.__defineVars__()
 
-    def __defineVars__(self,update):
-        self.update = update
+    def __defineVars__(self):
         self.varDict = dict(
             radius         = tk.StringVar(),\
-            circleUnit     = tk.StringVar(),\
-            densityUnit    = tk.StringVar(),\
             separation     = tk.StringVar(),\
-            density        = tk.StringVar(),\
-            documentWidth  = tk.StringVar(),\
-            documentHeight = tk.StringVar(),\
-            documentUnit   = tk.StringVar(),\
-            printType      = tk.BooleanVar())
+            density        = tk.StringVar())
+
+    def getVar(self,var):
+        return self.varDict[var]
 
     def getParams(self):
         return self.varDict
 
-class MultiPrintController(ParamAccess):
+class SinglePrintController(WidgetVarIntegration):
+    def __init__(self,update,patternDefaults=None):
+        super(SinglePrintController,self).__init__()
+        self.__defineVars__(update)
+
+    def __defineVars__(self,update):
+        self.update = update
+        self.singlePattern = SinglePattern()
+        self.varDict = dict(
+            printWidth  = tk.StringVar(),\
+            circleUnit  = tk.StringVar(),\
+            densityUnit = tk.StringVar(),\
+            printHeight = tk.StringVar(),\
+            printUnit   = tk.StringVar(),\
+            printType      = tk.BooleanVar())
+
+    def setDefaults(self,defaultDict):
+        dictSet(defaultDict["document"],self.varDict)
+        dictSet(defaultDict["pattern1"],self.singlePattern.getParams())
+
+    def getPatternDict(self):
+        return self.singlePattern.getParams()
+
+    def getDocumentDict(self):
+        return self.varDict
+
+    def getPatternV(self,varName):
+        return self.singlePattern.getVar(varName)
+
+    def getDocumentV(self,varName):
+        return self.varDict[varName]
+
+    def getPatternKV(self,varName):
+        return [varName,self.singlePattern.getVar(varName)]
+
+    def getDocumentKV(self,varName):
+        return [varName,self.varDict[varName]]
+
+class PatternController(WidgetVarIntegration):
+    def __init__(self,updateFrame):
+        super(PatternController,self).__init__()
+        self.__defineVars__(updateFrame)
+
+    def __defineVars__(self,updateFrame):
+        self.updateFrame = updateFrame
+        self.varDict = dict(patternFrameType  = tk.BooleanVar())
+
+    def setDefaults(self,defaultDict):
+        dictSet(defaultDict["pType"],self.varDict)
+
+    def getV(self,varName):
+        return self.varDict[varName]
+
+    def getKV(self,varName):
+        return [varName,self.varDict[varName]]
+
+class MultiPrintController(WidgetVarIntegration):
     def __init__(self,update):
-        super(MultiPrintController, self).__init__()
-        self.ureg = pint.UnitRegistry()
+        super(MultiPrintController,self).__init__()
         self.__defineVars__(update)
 
     def __defineVars__(self,update):
         self.update=update
         self.varDict = dict(
-            radius1      = tk.StringVar(),\
-            separation1  = tk.StringVar(),\
-            density1     = tk.StringVar(),\
-            radius2      = tk.StringVar(),\
-            separation2  = tk.StringVar(),\
-            density2     = tk.StringVar(),\
-            densityUnit = tk.StringVar(),\
-            circleUnit  = tk.StringVar(),\
             documentWidth= tk.StringVar(),\
             documentHeight=tk.StringVar(),\
             documentUnit= tk.StringVar(),\
             printWidth  = tk.StringVar(),\
             printHeight = tk.StringVar(),\
             printUnit   = tk.StringVar(),\
-            staticVar   = tk.StringVar(),\
-            staticUnit  = tk.StringVar(),\
             printMargin = tk.StringVar(),\
-            printType   = tk.BooleanVar())
-        self.checkDict  = dict(\
-            density     = tk.StringVar(),\
-            radius      = tk.StringVar(),\
-            separation  = tk.StringVar())
-        self.checkStates=[]
-        self.checkDict["density"].set("0")
-        self.checkDict["radius"].set("0")
-        self.checkDict["separation"].set("0")
+            printType   = tk.BooleanVar(),\
+            circleUnit  = tk.StringVar(),\
+            densityUnit = tk.StringVar(),\
+            densitySelect = tk.BooleanVar(),\
+            radiusSelect = tk.BooleanVar(),\
+            separationSelect = tk.BooleanVar())
 
-    def checkButtonCall(self,var):
-        if self.checkDict[var].get() is not "0":
-            if len(self.checkStates) == 2:
-                state = self.checkStates.pop(0)
-                self.checkDict[state].set("0")
-                state = state + "2"
-                self.varDict[state].set("")
+        self.pattern1 = SinglePattern()
+        self.pattern2 = SinglePattern()
 
-            self.checkStates.append(var)
-
-    def checkVar(self,key):
-        return self.checkDict[key]
-
-    def getParams(self):
+    def checkButtonCall(self,param):
         pass
 
-class AnalysisController(ParamAccess):
+    def getDocumentDict(self):
+        return self.varDict
+
+    def getPatternDict(self,x=1):
+        if x==1:
+            return self.pattern1.getParams()
+        else:
+            return self.pattern2.getParams()
+
+    def setDefaults(self,defaultDict):
+        dictSet(defaultDict["document"],self.varDict)
+        dictSet(defaultDict["pattern1"],self.pattern1.getParams())
+        dictSet(defaultDict["pattern2"],self.pattern2.getParams())
+
+    def getPatternV(self,x,key):
+        if x==1:
+            return self.pattern1.getVar(key)
+        else:
+            return self.pattern2.getVar(key)
+
+    def getDocumentV(self,varName):
+        return self.varDict[varName]
+
+    def getDocumentKV(self,varName):
+        return [varName,self.varDict[varName]]
+
+    def getPatternKV(self,x,key):
+        if x==1:
+            return [key+str(x),self.pattern1.getVar(key)]
+        else:
+            return [key+str(x),self.pattern2.getVar(key)]
+
+class AnalysisController:
     def __init__(self):
-        super(AnalysisController, self).__init__()
         self.__defineVars__()
 
     def __defineVars__(self):
@@ -160,40 +226,47 @@ class AnalysisController(ParamAccess):
             theoreticalOpacity  = tk.StringVar(),\
             empiricalOpacity    = tk.StringVar())
 
-class PatternController(ParamAccess):
+    def getTkVar(self,key):
+        return self.varDict[key]
+
+    def setTkVar(self,key,value):
+        self.varDict[key] = value
+
+class InputController:
     def __init__(self):
-        super(PatternController, self).__init__()
+        super(InputController, self).__init__()
         self.__defineVars__()
 
     def __defineVars__(self):
-            self.varDict = dict(patternType = tk.BooleanVar())
-
-class InputController(ParamAccess):
-    def __init__(self,update):
-        super(InputController, self).__init__()
-        self.__defineVars__(update)
-
-    def __defineVars__(self,update):
-        self.update = update
-        self.varDict = dict(InputType= tk.IntVar(),\
-                            InputImage=None)
+        self.varDict = dict(inputType= tk.StringVar(),\
+                            inputImage= None)
         self.canvas = None
         self.file_opt = dict(defaultextension='.png',\
                              filetypes= [('png files', '.png')],\
                              message="Select a Source .png Image")
 
+    def getImage(self):
+        if varDict["inputType"].get() is "black":
+            return None
+        else:
+            return self.varDict["inputImage"].copy()
+
+    def getValue(self,key):
+        return self.varDict[key]
+
+    def setDefaults(self,defaultDict):
+        dictSet(defaultDict["indef"],self.varDict)
+
     def radioUpdate(self):
         self.canvas.delete("all")
-        if self.getValue("InputType").get()==1:
+        if self.getValue("inputType") is "black":
             self.rectangleMethod()
 
         else:
-            if self.getValue("InputImage") is None:
+            if self.getValue("inputImage") is None:
                 self.loadImage()
-            img = self.getValue("InputImage").copy()
+            img = self.getValue("inputImage").copy()
             self.imageMethod(img)
-
-        self.update()
 
     def createCanvas(self,frame,canvassParams,canvassMethods):
         self.imageMethod = canvassMethods["imageMethod"]
@@ -204,7 +277,7 @@ class InputController(ParamAccess):
     def loadImage(self):
         img = PIL.Image.open(dialog.askopenfilename(**self.file_opt))
         img = img.convert("RGBA")
-        self.setValue("InputImage",img.copy())
+        self.setValue("inputImage",img.copy())
 
 class SideController:
     def __init__(self, modelControl):
@@ -212,31 +285,28 @@ class SideController:
 
     def __defineVars__(self,modelControl):
         self.modelControl = modelControl
+        self.changeFrame  = None
+        self.defaults = dict(pType   = dict(patternFrameType  = True),\
+                            indef    = dict(inputType="black"),\
+                            pattern1 = dict(radius='0.1',separation='0.3',density='500'),\
+                            pattern2 = dict(radius='0.3',separation='0.9',density='400'),\
+                            document = dict(documentWidth="8.5",documentHeight="11",documentUnit="in",\
+                                            printWidth="3",printHeight="3",printMargin="0.1",printUnit="cm",\
+                                            printType=False,circleUnit="mm",densityUnit="cm"))
+
         self.controllers = dict(singlePrintControl=SinglePrintController(self.updateUnitCell),\
                                multiPrintControl=MultiPrintController(self.updateUnitCell),\
                                analysisControl=AnalysisController(),\
-                               inputControl=InputController(self.updateUnitCell),\
-                               patternControl=PatternController())
+                               inputControl=InputController(),\
+                               patternControl=PatternController(self.changeFrame))
 
-        self.singleDefaults = dict(radius='0.1',separation='0.3',density='500',printType=False,documentHeight='3',\
-            documentWidth='3',circleUnit='mm',densityUnit='cm',documentUnit='cm')
-
-        self.printDefaults = dict(patternType=True)
-        self.inputDefaults = dict(InputType=1)
-        self.multiDefaults = dict(radius1='0.05',radius2='0.1',separation1='0.4',\
-            separation2='0.3',circleUnit='mm',\
-            density1='500',density2="600",densityUnit='cm',printType=False,\
-            documentHeight='11',documentWidth='8.5',documentUnit='in',\
-            printHeight='3',printWidth='3',printUnit='cm',printMargin='0.1',marginUnit='cm')
-
-        self.__setControllerDefaults__(self.controllers["inputControl"],self.inputDefaults)
-        self.__setControllerDefaults__(self.controllers["multiPrintControl"],self.multiDefaults)
-        self.__setControllerDefaults__(self.controllers["singlePrintControl"],self.singleDefaults)
-        self.__setControllerDefaults__(self.controllers["patternControl"],self.printDefaults)
+        self.__setControllerDefaults__(self.controllers["patternControl"],self.defaults)
+        self.__setControllerDefaults__(self.controllers["inputControl"],self.defaults)
+        self.__setControllerDefaults__(self.controllers["multiPrintControl"],self.defaults)
+        self.__setControllerDefaults__(self.controllers["singlePrintControl"],self.defaults)
 
     def __setControllerDefaults__(self,controller,defaults):
-        for key in defaults.keys():
-            controller.setTkValue(key,defaults[key])
+        controller.setDefaults(defaults)
 
     def getController(self,controller):
         return self.controllers.get(controller)
@@ -247,18 +317,30 @@ class SideController:
         else:
             return None
 
-    def getParamType(self):
-        return self.controllers["patternControl"].getValue("patternType").get()
+    def getPattern(self):
 
-    def getParams(self):
-        if self.controllers["patternControl"].getValue("patternType").get():
-             return self.controllers["singlePrintControl"].getParams()
+        if self.__getFrameType():
+            pattern = [self.getController("singlePrintControl").getPatternDict()]
         else:
-             return self.controllers["multiPrintControl"].getParams()
+            p1 = self.getController("multiPrintControl").getPatternDict()
+            p2 = self.getController("multiPrintControl").getPatternDict(2)
+            pattern = [p1,p2]
+        return pattern
+
+    def getDocument(self):
+        if self.__getFrameType():
+            return self.getController("singlePrintControl").getDocumentDict()
+        else:
+            return self.getController("multiPrintControl").getDocumentDict()
+
+    def getImage(self):
+        return self.getController("inputControl").getImage()
+
+    def __getFrameType(self):
+        return self.getController("patternControl").getV("patternFrameType").get()
 
     def updateUnitCell(self):
-        self.modelControl.updateUnitCell(\
-        self.controllers["patternControl"].getValue("patternType").get())
+        self.modelControl.updateUnitCell()
 
 class CanvassController:
     def __init__(self, modelControl):

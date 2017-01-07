@@ -21,9 +21,9 @@ class InputFrame(ParamFrameDefaults):
     def __defineButtons__(self):
         self.column0.append(tk.Label(self,text="Image Base Parameters",font=self.bigFont))
         self.column0.append(tk.Radiobutton(self, text="Black",**self.labelOptions,\
-                          variable = self.control.getValue("InputType"), value=1,command=self.control.radioUpdate))
+                          variable = self.control.getValue("inputType"), value="black",command=self.control.radioUpdate))
         self.column0.append(tk.Radiobutton(self, text="From Image",**self.labelOptions,\
-                          variable = self.control.getValue("InputType"), value=2,command=self.control.radioUpdate))
+                          variable = self.control.getValue("inputType"), value="image",command=self.control.radioUpdate))
 
         self.column1.append(tk.Button(self,text="Select Input Image",font=self.labelFont,width=14,command=self.control.loadImage))
         self.column1.append(self.control.createCanvas(self,self.canvassParams,self.canvassMethods))
@@ -77,11 +77,11 @@ class AnalysisFrame(ParamFrameDefaults):
         self.column0.append(tk.Label(self,text="Empirical Opacity",**self.labelOptions))
 
         self.column1.append(tk.Label(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('numericalOpacity')))
+                            textvariable=self.control.getTkVar('numericalOpacity')))
         self.column1.append(tk.Label(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('theoreticalOpacity')))
+                            textvariable=self.control.getTkVar('theoreticalOpacity')))
         self.column1.append(tk.Label(self,**self.longEntryOptions,\
-                            textvariable=self.control.getValue('empiricalOpacity')))
+                            textvariable=self.control.getTkVar('empiricalOpacity')))
 
 
     def __alignButtons__(self):
@@ -128,27 +128,27 @@ class ActionFrame(tk.Frame):
         self.saveButton.grid(column=0,row=0)
         self.generateButton.grid(column=1,row=0)
 
-class ControlFrame(ParamFrameDefaults):
-    def __init__(self, parent,method,controller):
-        super(ControlFrame,self).__init__(parent)
-        self.__defineVars__(controller,method)
+class PatternControlFrame(ParamFrameDefaults):
+    def __init__(self, parent,controller):
+        super(PatternControlFrame,self).__init__(parent)
+        self.__defineVars__(controller)
         self.__defineButtons__()
         self.__alignButtons__()
 
-    def __defineVars__(self,controller,method):
-        self.method = method
-        self.control= controller
+    def __defineVars__(self,controller):
+        self.control = controller
 
     def __defineButtons__(self):
         self.label   = tk.Label(self,text="Document Type",font=self.bigFont)
         button1param = dict(text="Single Pattern Print",width=20,font=self.labelFont)
         button2param = dict(text="Multi Pattern Print ",width=20,font=self.labelFont)
         buttons      = self.control.makeBooleanButtons(self,\
-                                buttons=dict(single=dict(value=False,param=button1param),\
-                                             multi=dict(value=True,param=button2param)),\
-                                method=self.changeButton,variable="patternType")
-        self.multiParambutton  = buttons[0]
-        self.singleParambutton = buttons[1]
+                                buttonParam=[dict(boundBool=False,param=button1param),\
+                                             dict(boundBool=True,param=button2param)],\
+                                boundvar=self.control.getKV('patternFrameType'),\
+                                uicommand=self.changeButton)
+        self.singleParamButton = buttons[0]
+        self.multiParamButton  = buttons[1]
 
     def __alignButtons__(self):
         self.grid_columnconfigure(0,minsize=120,pad=5)
@@ -156,13 +156,13 @@ class ControlFrame(ParamFrameDefaults):
         self.grid_rowconfigure(0,minsize=30,pad=5)
 
         self.label.grid(row=0,column=0,sticky='w')
-        self.singleParambutton.grid(row=0,column=1,sticky='w')
+        self.singleParamButton.grid(row=0,column=1,sticky='w')
 
     def changeButton(self,button):
-        self.method(button)
+        self.control.updateFrame(button)
         if button:
-            self.multiParambutton.grid_forget()
-            self.singleParambutton.grid(row=0,column=1,sticky='w')
+            self.multiParamButton.grid_forget()
+            self.singleParamButton.grid(row=0,column=1,sticky='w')
 
         else:
             self.singleParambutton.grid_forget()
@@ -222,13 +222,14 @@ class SideFrame(tk.Frame):
 
     def __defineVars__(self,controller):
         self.control = controller
+        self.control.changeFrame = self.changeFrame
 
     def __defineFrames__(self):
         self.analysisFrame       = AnalysisFrame(self,self.control.getController("analysisControl"))
         self.InputFrame          = InputFrame(self,self.control.getController("inputControl"))
         self.multiParamFrame     = subview.MultiParamFrame(self,self.control.getController("multiPrintControl"))
         self.singleParamFrame    = subview.SingleParamFrame(self,self.control.getController("singlePrintControl"))
-        self.controlFrame        = ControlFrame(self,self.changeFrame,self.control.getController("patternControl"))
+        self.controlFrame        = PatternControlFrame(self,self.control.getController("patternControl"))
 
     def __alignButtons__(self):
         self.grid_columnconfigure(0,minsize=300,pad=5)

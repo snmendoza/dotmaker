@@ -43,7 +43,7 @@ class Unit_Cell:
     def get_mask(self):
         return self.mask.copy()
 
-    def get_image(self):
+    def getImage(self):
         temp = PIL.Image.new('RGBA',self.cellSize,0)
         return PIL.Image.alpha_composite(temp, self.mask)
 
