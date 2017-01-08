@@ -6,7 +6,7 @@ from copy import deepcopy
 from tkinter import *
 import operator
 
-class Unit_Cell:
+class UnitCell:
     def __init__(self, vardict):
         self.__defineVars(vardict)
         self.__create_cell()
@@ -52,7 +52,7 @@ class Cell_analysis:
         self.__set_values__(var_dict)
 
     def __set_values__(self,container):
-        self.unit_cell = unit_cell(var_dict)
+        self.unit_cell = UnitCell(var_dict)
         self.r = container.get_dict_value("radius")
         self.s = container.get_dict_value("separation")
 
@@ -97,10 +97,10 @@ def __getPreImage(varDict):
         img = img.resize(size)
     return img
 
-def createPng(varDict):
+def createSinglePrintPng(varDict):
     ## need a dummy image, mask, and
     size = (varDict.get("width"), varDict.get("height"))
-    cell = Unit_Cell(varDict)
+    cell = UnitCell(varDict)
     tile_mask = cell.get_mask()
     tilewidth, tileheight = tile_mask.size
     main = PIL.Image.new('RGBA', size, 255)

@@ -9,21 +9,28 @@ class ModelControl:
         self.img=None
 
     def updateUnitCell(self):
-        print("update Unit Cell")
         patternDict  = self.params.getPattern()
         documentDict = self.params.getDocument()
         if len(patternDict) > 1:
             print("multi Print")
             pass
         else:
-            print("single Print")
-            combinedDict = normalizePattern(documentDict[0],patternDict[0])
-            combinedDict["input_file"] = self.params.getImage()
+            combinedDict = normalizePattern(documentDict,patternDict[0])
             unit = model.UnitCell(combinedDict)
-            return unit.getImage()
+            unit.getImage()
+            self.display.updateCanvass(unit.getImage(),"cell")
 
     def updatePrintView(self):
-        pass
+        patternDict  = self.params.getPattern()
+        documentDict = self.params.getDocument()
+        if len(patternDict) > 1:
+            print("multi Print")
+            pass
+        else:
+            combinedDict = normalizePattern(documentDict,patternDict[0])
+            combinedDict["input_file"] = self.params.getImage()
+            self.img = model.createSinglePrintPng(combinedDict)
+            self.display.updateCanvass(self.img.copy(),"print")
 
     def getPrintAnalysis(self):
         pass
@@ -42,8 +49,8 @@ def normalizePattern(documentDict,patternDict):
         ureg = pint.UnitRegistry()
         px_cm_conversion = __normalize(ureg,patternDict["density"],documentDict["densityUnit"])
         default=dict( \
-            height=int(round(__normalize(ureg,documentDict["printWidth"],documentDict["documentUnit"])*px_cm_conversion,0)), \
-            width=int(round(__normalize(ureg,documentDict["printHeight"],documentDict["documentUnit"])*px_cm_conversion,0)), \
+            height=int(round(__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"])*px_cm_conversion,0)), \
+            width=int(round(__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"])*px_cm_conversion,0)), \
             separation=int(round(__normalize(ureg,patternDict["separation"],documentDict["circleUnit"])*px_cm_conversion,0)),\
             radius=int(round(__normalize(ureg,patternDict["radius"],documentDict["circleUnit"])*px_cm_conversion,0)),\
             is_positive=documentDict["printType"].get(),\

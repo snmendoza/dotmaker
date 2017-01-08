@@ -100,6 +100,9 @@ class SinglePattern:
     def getParams(self):
         return self.varDict
 
+    def setParams(self,key,value):
+        self.varDict[key].set(value)
+
 class SinglePrintController(WidgetVarIntegration):
     def __init__(self,update,patternDefaults=None):
         super(SinglePrintController,self).__init__()
@@ -139,12 +142,12 @@ class SinglePrintController(WidgetVarIntegration):
         return [varName,self.varDict[varName]]
 
 class PatternController(WidgetVarIntegration):
-    def __init__(self,updateFrame):
+    def __init__(self,changeFrame):
         super(PatternController,self).__init__()
-        self.__defineVars__(updateFrame)
+        self.__defineVars__(changeFrame)
 
-    def __defineVars__(self,updateFrame):
-        self.updateFrame = updateFrame
+    def __defineVars__(self,changeFrame):
+        self.changeFrame = changeFrame
         self.varDict = dict(patternFrameType  = tk.BooleanVar())
 
     def setDefaults(self,defaultDict):
@@ -155,6 +158,9 @@ class PatternController(WidgetVarIntegration):
 
     def getKV(self,varName):
         return [varName,self.varDict[varName]]
+
+    def updateFrame(self):
+        self.changeFrame()
 
 class MultiPrintController(WidgetVarIntegration):
     def __init__(self,update):
@@ -178,11 +184,29 @@ class MultiPrintController(WidgetVarIntegration):
             radiusSelect = tk.BooleanVar(),\
             separationSelect = tk.BooleanVar())
 
+        self.checkList = []
+        self.possibleChecks = ("densitySelect","radiusSelect","separationSelect")
         self.pattern1 = SinglePattern()
         self.pattern2 = SinglePattern()
 
     def checkButtonCall(self,param):
-        pass
+        value = self.varDict[param].get()
+        if value:
+            self.checkList.append(param)
+            if len(self.checkList) == 2:
+                self.updatePattern()
+            elif len(self.checkList) > 2:
+                param0 = self.checkList.pop(0)
+                self.varDict[param0].set(False)
+                self.updatePattern()
+
+        else:
+            self.checkList.remove(param)
+
+    def updatePattern(self):
+        for key in self.possibleChecks:
+            if key not in self.checkList:
+                self.pattern2.setParams(key[:-6],"")
 
     def getDocumentDict(self):
         return self.varDict
@@ -246,7 +270,7 @@ class InputController:
                              message="Select a Source .png Image")
 
     def getImage(self):
-        if varDict["inputType"].get() is "black":
+        if self.varDict["inputType"].get()== "black":
             return None
         else:
             return self.varDict["inputImage"].copy()
@@ -259,9 +283,8 @@ class InputController:
 
     def radioUpdate(self):
         self.canvas.delete("all")
-        if self.getValue("inputType") is "black":
+        if self.getValue("inputType").get() == "black":
             self.rectangleMethod()
-
         else:
             if self.getValue("inputImage") is None:
                 self.loadImage()
@@ -277,7 +300,7 @@ class InputController:
     def loadImage(self):
         img = PIL.Image.open(dialog.askopenfilename(**self.file_opt))
         img = img.convert("RGBA")
-        self.setValue("inputImage",img.copy())
+        self.varDict["inputImage"] = img.copy()
 
 class SideController:
     def __init__(self, modelControl):
@@ -298,7 +321,7 @@ class SideController:
                                multiPrintControl=MultiPrintController(self.updateUnitCell),\
                                analysisControl=AnalysisController(),\
                                inputControl=InputController(),\
-                               patternControl=PatternController(self.changeFrame))
+                               patternControl=PatternController(self.updateFrame))
 
         self.__setControllerDefaults__(self.controllers["patternControl"],self.defaults)
         self.__setControllerDefaults__(self.controllers["inputControl"],self.defaults)
@@ -317,15 +340,14 @@ class SideController:
         else:
             return None
 
-    def getPattern(self):
-
+    def getPattern(self,x=1):
         if self.__getFrameType():
-            pattern = [self.getController("singlePrintControl").getPatternDict()]
+            return self.getController("singlePrintControl").getPatternDict()
         else:
-            p1 = self.getController("multiPrintControl").getPatternDict()
-            p2 = self.getController("multiPrintControl").getPatternDict(2)
-            pattern = [p1,p2]
-        return pattern
+            if x==1:
+                return self.getController("multiPrintControl").getPatternDict()
+            else:
+                return self.getController("multiPrintControl").getPatternDict(2)
 
     def getDocument(self):
         if self.__getFrameType():
@@ -341,6 +363,11 @@ class SideController:
 
     def updateUnitCell(self):
         self.modelControl.updateUnitCell()
+
+    def updateFrame(self):
+        self.changeFrame(self.getController("patternControl").getV("patternFrameType").get())
+        self.updateUnitCell()
+        self.updatePrintView()
 
 class CanvassController:
     def __init__(self, modelControl):

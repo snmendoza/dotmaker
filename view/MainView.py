@@ -140,8 +140,8 @@ class PatternControlFrame(ParamFrameDefaults):
 
     def __defineButtons__(self):
         self.label   = tk.Label(self,text="Document Type",font=self.bigFont)
-        button1param = dict(text="Single Pattern Print",width=20,font=self.labelFont)
-        button2param = dict(text="Multi Pattern Print ",width=20,font=self.labelFont)
+        button1param = dict(text="Multi Pattern Print ",width=20,font=self.labelFont)
+        button2param = dict(text="Single Pattern Print",width=20,font=self.labelFont)
         buttons      = self.control.makeBooleanButtons(self,\
                                 buttonParam=[dict(boundBool=False,param=button1param),\
                                              dict(boundBool=True,param=button2param)],\
@@ -159,14 +159,14 @@ class PatternControlFrame(ParamFrameDefaults):
         self.singleParamButton.grid(row=0,column=1,sticky='w')
 
     def changeButton(self,button):
-        self.control.updateFrame(button)
+        self.control.updateFrame()
         if button:
             self.multiParamButton.grid_forget()
             self.singleParamButton.grid(row=0,column=1,sticky='w')
 
         else:
-            self.singleParambutton.grid_forget()
-            self.multiParambutton.grid(row=0,column=1,sticky='w')
+            self.singleParamButton.grid_forget()
+            self.multiParamButton.grid(row=0,column=1,sticky='w')
 
 class CanvassFrame(ParamFrameDefaults):
     def __init__(self, parent,controller):
@@ -245,11 +245,11 @@ class SideFrame(tk.Frame):
 
     def changeFrame(self,frame):
         if frame:
-            self.multiParamFrame.grid_forget()
-            self.singleParamFrame.grid(row=1,column=0,columnspan=2,sticky='w')
-        else:
             self.singleParamFrame.grid_forget()
             self.multiParamFrame.grid(row=1,column=0,columnspan=2,sticky='w')
+        else:
+            self.multiParamFrame.grid_forget()
+            self.singleParamFrame.grid(row=1,column=0,columnspan=2,sticky='w')
 
 
 class MainView:

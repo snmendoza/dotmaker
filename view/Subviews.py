@@ -144,15 +144,15 @@ class MultiParamFrame(ParamFrameDefaults):
         self.column3.append(tk.Checkbutton(self, text="Dot Density:",\
             variable=self.control.getDocumentV("densitySelect"),\
             **self.checkButtonOptions,onvalue=True, offvalue=False,\
-            command=lambda: self.control.checkButtonCall("density")))
+            command=lambda: self.control.checkButtonCall("densitySelect")))
         self.column3.append(tk.Checkbutton(self, text="Radius:",\
             variable=self.control.getDocumentV("radiusSelect"),\
             **self.checkButtonOptions,onvalue=True, offvalue=False,\
-            command=lambda: self.control.checkButtonCall("radius")))
+            command=lambda: self.control.checkButtonCall("radiusSelect")))
         self.column3.append(tk.Checkbutton(self, text="Separation:",\
             variable=self.control.getDocumentV("separationSelect"),\
             **self.checkButtonOptions,onvalue=True, offvalue=False,\
-            command=lambda: self.control.checkButtonCall("separation")))
+            command=lambda: self.control.checkButtonCall("separationSelect")))
 
         self.column4.append(tk.Label(self, text="Start",**self.shortLabelOptions))
         self.column5.append(tk.Label(self, text="End",**self.shortLabelOptions))
