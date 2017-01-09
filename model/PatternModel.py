@@ -15,8 +15,9 @@ class UnitCell:
     def __defineVars(self,vardict):
         self.r  = vardict.get("radius")
         self.p  = vardict.get("is_positive")
-        self.s  = int(round(vardict.get("separation")*math.sqrt(1/2),0))
-        self.cellSize = (self.s*2+1,self.s*2+1)
+        self.s  = round(vardict.get("separation"),0)
+        self.s_12 = int(round(self.s*math.sqrt(1/2),0))
+        self.cellSize = (self.s_12*2+1,self.s_12*2+1)
         circ = 1
         back = 0
         if self.p is False:
@@ -29,7 +30,7 @@ class UnitCell:
 
     def __create_cell(self):
         r = self.r
-        s = self.s
+        s = self.s_12
         radius = (-r,-r, r, r)
         draw = ImageDraw.Draw(self.mask)
         for x in range(0,2):
@@ -67,11 +68,13 @@ def get_theoretical_opacity(cell):
         triangle_area    = (s/2) * math.sqrt(r2 - s2/4)
         sector_degrees   = math.pi/4 - math.acos(s/(2*r))
         sector_area      = r2*sector_degrees
-        positive_opacity = (triangle_area + sector_area)/oct_area
+        positive_opacity = (triangle_area + 2*sector_area)/oct_area
+        print("triangle_area:" + str(triangle_area) + " sector degrees:" + str(math.degrees(sector_degrees)))
+        
     if cell.p:
         return positive_opacity
     else:
-        return 1 - positive_opacity
+        return 1-positive_opacity
 
 
 def get_numerical_opacity(cell):

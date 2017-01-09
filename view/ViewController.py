@@ -322,7 +322,7 @@ class SideController:
                             pattern2 = dict(radius='0.5',separation='1.5',density='600'),\
                             document = dict(documentWidth="8.5",documentHeight="11",documentUnit="in",\
                                             printWidth="3",printHeight="3",printMargin="0.1",printUnit="cm",\
-                                            printType=False,circleUnit="mm",densityUnit="cm"))
+                                            printType=True,circleUnit="mm",densityUnit="cm"))
 
         self.controllers = dict(singlePrintControl=SinglePrintController(self.updateUnitCell),\
                                multiPrintControl=MultiPrintController(self.updateUnitCell),\
