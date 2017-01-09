@@ -1,5 +1,6 @@
 import model.PatternModel as model
 import pint
+import tkinter as tk
 
 class ModelControl:
     def __init__(self,actionControl=None,paramControl=None,displayControl=None):
@@ -22,18 +23,26 @@ class ModelControl:
         documentDict = self.params.getDocument()
         combinedDict = normalizeSinglePattern(documentDict,patternDict)
         unit = model.UnitCell(combinedDict)
+        t = unit.theoreticalOpacity
+        n = unit.numericalOpacity
+        analysisString = (str(round(t*100,1)) + "%",str(round(n*100,1)) + "%")
+        self.params.setAnalysis(analysisString)
         unit.getImage()
         self.display.updateCanvass(unit.getImage(),"cell")
 
     def __makeMultiUnitCell(self):
-        documentDict = self.params.getDocument()
-        independentVars = self.params.getIndependentVariables()
-        pattern1  = self.params.getPattern()
-        pattern2  = self.params.getPattern(x=2)
-        cellDicts = makeParameterSpaceDicts(document=documentDict,patterns=(pattern1,pattern2),\
+        if len(self.params.getIndependentVariables()) > 1:
+            documentDict = self.params.getDocument()
+            independentVars = self.params.getIndependentVariables()
+            pattern1  = self.params.getPattern()
+            pattern2  = self.params.getPattern(x=2)
+            cellDicts = makeParameterCellSpaceDicts(document=documentDict,patterns=(pattern1,pattern2),\
                                         indepVars=independentVars)
-        cellimg = model.createMultiPrintCell(cellDicts)
-        self.display.updateCanvass(cellimg,"cell")
+            cellimg = model.createMultiPrintCell(cellDicts)
+            analysisString = (" Min: " + str(round(min(cellimg[1])*100,1)) + "%% Max: " + str(round(max(cellimg[1])*100,1)) + " %%",\
+                              " Min: " + str(round(min(cellimg[2])*100,1)) + "%% Max: " + str(round(max(cellimg[2])*100,1)) + " %%")
+            self.params.setAnalysis(analysisString)
+            self.display.updateCanvass(cellimg[0],"cell")
 
     def __updateSinglePrint(self):
         patternDict  = self.params.getPattern()
@@ -44,12 +53,16 @@ class ModelControl:
         self.display.updateCanvass(self.img.copy(),"print")
 
     def __updateMultiPrint(self):
-        patternDict  = self.params.getPattern()
-        documentDict = self.params.getDocument()
-        #combinedDict = normalizeMultiPattern(documentDict,patternDict)
-        #combinedDict["input_file"] = self.params.getImage()
-        #self.img = model.createSinglePrintPng(combinedDict)
-        #self.display.updateCanvass(self.img.copy(),"print")
+        if len(self.params.getIndependentVariables()) > 1:
+            parameters = dict(document = self.params.getDocument(),\
+                independentVars = self.params.getIndependentVariables(),\
+                pattern1  = self.params.getPattern(),\
+                pattern2  = self.params.getPattern(x=2),\
+                imageBase = self.params.getImage())
+            printDicts = makeParameterPrintSpaceDicts(parameters)
+            normalizedDocumentDict = normalizeDocument(parameters)
+            self.img = model.createMultiPrintPng(normalizedDocumentDict,printDicts)
+            self.display.updateCanvass(self.img.copy(),"print")
 
     def updatePrintView(self):
         frameType = self.params.getFrameType()
@@ -68,10 +81,57 @@ def anayze_unit_cell(params):
     unit_cell = model.unit_cell(get_normalized_vars(params))
     return (unit_cell.get_theoretical_opacity(),unit_cell.get_numerical_opacity())
 
-def normalizeDocument(indict):
-    ureg = pint.UnitRegistry()
+def makeParameterPrintSpaceDicts(param):
+    possibleStaticVars = ("densitySelect","radiusSelect","separationSelect")
+    for var in possibleStaticVars:
+        if var not in param['independentVars']:
+            staticVar = var
+    indepVars = param['independentVars']
+    documentValues = getDocumentValues(param)
+    xysubdivisions = getXYSubDivisions(documentValues)
+    xychanges = getXYChanges(param)
+    dxychanges = (xychanges[0]/xysubdivisions[0],xychanges[1]/xysubdivisions[1])
+    dicts = [[None for i in range(xysubdivisions[1])] for j in range(xysubdivisions[0])]
+    for x in range(0,xysubdivisions[0]):
+        for y in range(0,xysubdivisions[1]):
+            tempDict=dict(radius=tk.StringVar(),separation=tk.StringVar(),density=tk.StringVar())
+            tempDict[staticVar[:-6]].set(param["pattern1"][staticVar[:-6]].get())
+            tempDict[indepVars[0][:-6]].set(str(float(param["pattern1"][indepVars[0][:-6]].get()) + dxychanges[0]*x))
+            tempDict[indepVars[1][:-6]].set(str(float(param["pattern1"][indepVars[1][:-6]].get()) + dxychanges[1]*y))
+            dicts[x][y]=normalizeSinglePattern(param["document"],tempDict)
+            dicts[x][y]["input_file"] = param["imageBase"]
+    return dicts
 
-def makeParameterSpaceDicts(document=None,patterns=None,indepVars=None):
+def getXYChanges(param):
+    indepvars = param["independentVars"]
+    one = param["pattern1"]
+    two = param["pattern2"]
+
+    dx = float(two[indepvars[0][:-6]].get()) - float(one[indepvars[0][:-6]].get())
+    dy = float(two[indepvars[1][:-6]].get()) - float(one[indepvars[1][:-6]].get())
+
+    return (dx,dy)
+
+def getXYSubDivisions(params):
+    yunit = params["printHeight"] + params["printMargin"]
+    xunit = params["printWidth"] + params["printMargin"]
+    xdist = params["documentWidth"] + params["printMargin"]
+    ydist = params["documentHeight"] + params["printMargin"]
+
+    return (int(ydist/yunit),int(xdist/xunit))
+
+def getDocumentValues(params):
+    documentDict=params['document']
+    ureg = pint.UnitRegistry()
+    documentValues=dict( \
+        printHeight=__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"]), \
+        printWidth=__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"]), \
+        printMargin=__normalize(ureg,documentDict["printMargin"],documentDict["printUnit"]),\
+        documentHeight=__normalize(ureg,documentDict["documentHeight"],documentDict["documentUnit"]),\
+        documentWidth=__normalize(ureg,documentDict["documentWidth"],documentDict["documentUnit"]))
+    return documentValues
+
+def makeParameterCellSpaceDicts(document=None,patterns=None,indepVars=None):
     dicts = [[None,None],[None,None]]
     possibleStaticVars = ("densitySelect","radiusSelect","separationSelect")
     for var in possibleStaticVars:
@@ -101,3 +161,22 @@ def normalizeSinglePattern(documentDict,patternDict):
 
 def __normalize(ureg,prev,prevUnit):
     return float(ureg(prev.get() + prevUnit.get()).to("cm").magnitude)
+
+def normalizeDocument(parameters):
+    ureg = pint.UnitRegistry()
+    if 'density' not in parameters['independentVars']:
+        density = parameters['pattern1']['density']
+    else:
+        density = parameters['pattern1']['density']
+        density2 = parameters['pattern2']['density']
+        if float(density2) > float(density):
+            density = density2
+    documentDict=parameters['document']
+    px_cm_conversion = __normalize(ureg,density,documentDict["densityUnit"])
+    default=dict( \
+        documentHeight=int(round(__normalize(ureg,documentDict["documentWidth"],documentDict["documentUnit"])*px_cm_conversion,0)), \
+        documentWidth=int(round(__normalize(ureg,documentDict["documentHeight"],documentDict["documentUnit"])*px_cm_conversion,0)), \
+        printHeight=int(round(__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"])*px_cm_conversion,0)),\
+        printWidth=int(round(__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"])*px_cm_conversion,0)),\
+        printMargin=int(round(__normalize(ureg,documentDict["printMargin"],documentDict["printUnit"])*px_cm_conversion,0)))
+    return default

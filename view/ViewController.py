@@ -259,8 +259,9 @@ class AnalysisController:
     def getTkVar(self,key):
         return self.varDict[key]
 
-    def setTkVar(self,key,value):
-        self.varDict[key] = value
+    def setAnalysisString(self,analysis):
+        self.varDict["theoreticalOpacity"].set(analysis[0])
+        self.varDict["numericalOpacity"].set(analysis[1])
 
 class InputController:
     def __init__(self):
@@ -318,7 +319,7 @@ class SideController:
         self.defaults = dict(pType   = dict(patternFrameType  = True),\
                             indef    = dict(inputType="black"),\
                             pattern1 = dict(radius='0.1',separation='0.3',density='500'),\
-                            pattern2 = dict(radius='0.3',separation='0.9',density='400'),\
+                            pattern2 = dict(radius='0.5',separation='1.5',density='600'),\
                             document = dict(documentWidth="8.5",documentHeight="11",documentUnit="in",\
                                             printWidth="3",printHeight="3",printMargin="0.1",printUnit="cm",\
                                             printType=False,circleUnit="mm",densityUnit="cm"))
@@ -376,6 +377,9 @@ class SideController:
     def updateFrame(self):
         self.changeFrame(self.getController("patternControl").getV("patternFrameType").get())
         self.updateUnitCell()
+
+    def setAnalysis(self,stringList):
+        self.getController("analysisControl").setAnalysisString(stringList)
 
 class CanvassController:
     def __init__(self, modelControl):

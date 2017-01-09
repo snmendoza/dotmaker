@@ -72,9 +72,9 @@ class AnalysisFrame(ParamFrameDefaults):
     def __defineButtons__(self):
 
         self.column0.append(tk.Label(self,text="Print Parameter Analysis",font=self.bigFont))
-        self.column0.append(tk.Label(self,text="Numerical Opacity",**self.labelOptions))
-        self.column0.append(tk.Label(self,text="Theoretical Opacity",**self.labelOptions))
-        self.column0.append(tk.Label(self,text="Empirical Opacity",**self.labelOptions))
+        self.column0.append(tk.Label(self,text="Numerical Opacity:",**self.labelOptions))
+        self.column0.append(tk.Label(self,text="Theoretical Opacity:",**self.labelOptions))
+        self.column0.append(tk.Label(self,text="Empirical Opacity:",**self.labelOptions))
 
         self.column1.append(tk.Label(self,**self.longEntryOptions,\
                             textvariable=self.control.getTkVar('numericalOpacity')))

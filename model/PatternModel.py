@@ -10,6 +10,7 @@ class UnitCell:
     def __init__(self, vardict):
         self.__defineVars(vardict)
         self.__create_cell()
+        self.__analyze_pattern()
 
     def __defineVars(self,vardict):
         self.r  = vardict.get("radius")
@@ -40,6 +41,11 @@ class UnitCell:
         draw.ellipse(tuple(map(operator.add, radius, b)),fill=self.circle)
         del draw
 
+    def __analyze_pattern(self):
+
+        self.numericalOpacity   = get_numerical_opacity(self)
+        self.theoreticalOpacity = get_theoretical_opacity(self)
+
     def get_mask(self):
         return self.mask.copy()
 
@@ -47,45 +53,37 @@ class UnitCell:
         temp = PIL.Image.new('RGBA',self.cellSize,0)
         return PIL.Image.alpha_composite(temp, self.mask)
 
-class Cell_analysis:
-    def __init__(self, container):
-        self.__set_values__(var_dict)
-
-    def __set_values__(self,container):
-        self.unit_cell = UnitCell(var_dict)
-        self.r = container.get_dict_value("radius")
-        self.s = container.get_dict_value("separation")
-
-    def get_unit_image(self):
-        return self.unit_cell.get_image()
-
-    def get_theoretical_opacity(self):
-        r = self.r
-        s = self.s
-        s2 = float(s*s)
-        r2 = float(r*r)
-        if 2*r < s:
-            if self.__pos == True:
-                return math.pi*r2 / s2
-
-            else:
-                return ((s2 - math.pi*r2) / s2)
-
-        else:
-            return 0.99;
+def get_theoretical_opacity(cell):
+    r = float(cell.r)
+    s = float(cell.s)
+    s2 = s*s
+    r2 = r*r
+    oct_area = s2/4
+    if 2*r < s:
+        print("smaller")
+        positive_opacity = 2*math.pi*r2 / (8*oct_area)
+    else:
+        print("very big")
+        triangle_area    = (s/2) * math.sqrt(r2 - s2/4)
+        sector_degrees   = math.pi/4 - math.acos(s/(2*r))
+        sector_area      = r2*sector_degrees
+        positive_opacity = (triangle_area + sector_area)/oct_area
+    if cell.p:
+        return positive_opacity
+    else:
+        return 1 - positive_opacity
 
 
-    def get_numerical_opacity(self):
-        temp_img = self.get_unit_image()
-        n_i      = self.__sep*math.sqrt(2)
-        width, height = temp_img.size
-        alpha_sum    = 0
-        for x in range(0,xdim):
-            for y in range(0,ydim):
-                pixel_tuple = temp_img.getpixel((x,y))
-                alpha_sum = alpha_sum + pixel_tuple[3]
+def get_numerical_opacity(cell):
+    temp_img = cell.getImage()
+    width, height = temp_img.size
+    alpha_sum     = 0
+    for x in range(0,width):
+        for y in range(0,height):
+            pixel_tuple = temp_img.getpixel((x,y))
+            alpha_sum = alpha_sum + pixel_tuple[3]
 
-        return alpha / (255*xdim*ydim)
+    return alpha_sum / (255*width*height)
 
 def __getPreImage(varDict):
     size = (varDict.get("width"), varDict.get("height"))
@@ -100,16 +98,19 @@ def __getPreImage(varDict):
 def createMultiPrintCell(cellDicts):
     ## need a dummy image, mask, and
     size = (200, 200)
-
+    t=[]
+    n=[]
     m = PIL.Image.new('RGBA', size ,255)
     for left in range(0, 2):
         for top in range(0, 2):
             cell = UnitCell(cellDicts[left][top])
             img = cell.getImage()
+            t.append(cell.theoreticalOpacity)
+            n.append(cell.numericalOpacity)
             img = img.resize((100,100))
             m.paste(img, (left*100, top*100),mask=img)
 
-    return m
+    return (m,t,n)
 
 def createSinglePrintPng(varDict):
     ## need a dummy image, mask, and
@@ -125,4 +126,20 @@ def createSinglePrintPng(varDict):
               m.paste(tile_mask, (left, top),mask=tile_mask)
 
     main.paste(preimg,(0,0),m)
+    return main
+
+def createMultiPrintPng(document,printdicts):
+    ## need a dummy image, mask, and
+    docSize = (document['documentWidth'], document['documentHeight'])
+    pResize = (document['printWidth'], document['printHeight'])
+    margin  = document['printMargin']
+    xlength = len(printdicts)
+    ylength = len(printdicts[0])
+    main = PIL.Image.new('RGBA', docSize, 0)
+    for x in range(xlength):
+        for y in range(ylength):
+            img = createSinglePrintPng(printdicts[x][y])
+            img = img.resize((pResize[0],pResize[1]))
+            main.paste(img, (margin+x*(pResize[0] + margin), margin+y*(pResize[1] + margin)),mask=img)
+
     return main
