@@ -189,12 +189,16 @@ class MultiPrintController(WidgetVarIntegration):
         self.pattern1 = SinglePattern()
         self.pattern2 = SinglePattern()
 
+    def getIndependentVariables(self):
+        return tuple(self.checkList)
+
     def checkButtonCall(self,param):
         value = self.varDict[param].get()
         if value:
             self.checkList.append(param)
             if len(self.checkList) == 2:
                 self.updatePattern()
+
             elif len(self.checkList) > 2:
                 param0 = self.checkList.pop(0)
                 self.varDict[param0].set(False)
@@ -207,6 +211,8 @@ class MultiPrintController(WidgetVarIntegration):
         for key in self.possibleChecks:
             if key not in self.checkList:
                 self.pattern2.setParams(key[:-6],"")
+
+        self.update()
 
     def getDocumentDict(self):
         return self.varDict
@@ -340,8 +346,11 @@ class SideController:
         else:
             return None
 
+    def getIndependentVariables(self):
+        return self.getController("multiPrintControl").getIndependentVariables()
+
     def getPattern(self,x=1):
-        if self.__getFrameType():
+        if self.getFrameType():
             return self.getController("singlePrintControl").getPatternDict()
         else:
             if x==1:
@@ -350,7 +359,7 @@ class SideController:
                 return self.getController("multiPrintControl").getPatternDict(2)
 
     def getDocument(self):
-        if self.__getFrameType():
+        if self.getFrameType():
             return self.getController("singlePrintControl").getDocumentDict()
         else:
             return self.getController("multiPrintControl").getDocumentDict()
@@ -358,7 +367,7 @@ class SideController:
     def getImage(self):
         return self.getController("inputControl").getImage()
 
-    def __getFrameType(self):
+    def getFrameType(self):
         return self.getController("patternControl").getV("patternFrameType").get()
 
     def updateUnitCell(self):
@@ -367,7 +376,6 @@ class SideController:
     def updateFrame(self):
         self.changeFrame(self.getController("patternControl").getV("patternFrameType").get())
         self.updateUnitCell()
-        self.updatePrintView()
 
 class CanvassController:
     def __init__(self, modelControl):

@@ -97,6 +97,20 @@ def __getPreImage(varDict):
         img = img.resize(size)
     return img
 
+def createMultiPrintCell(cellDicts):
+    ## need a dummy image, mask, and
+    size = (200, 200)
+
+    m = PIL.Image.new('RGBA', size ,255)
+    for left in range(0, 2):
+        for top in range(0, 2):
+            cell = UnitCell(cellDicts[left][top])
+            img = cell.getImage()
+            img = img.resize((100,100))
+            m.paste(img, (left*100, top*100),mask=img)
+
+    return m
+
 def createSinglePrintPng(varDict):
     ## need a dummy image, mask, and
     size = (varDict.get("width"), varDict.get("height"))
