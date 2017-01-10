@@ -397,8 +397,9 @@ class ActionController:
 
     def save(self):
         img = self.model.save()
-        filename = dialog.asksaveasfilename()
-        img.save(filename + ".png")
+        if img is not None:
+            filename = dialog.asksaveasfilename()
+            img.save(filename + ".png")
 
     def generate(self):
         self.model.updatePrintView()

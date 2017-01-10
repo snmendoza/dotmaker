@@ -76,17 +76,17 @@ class AnalysisFrame(ParamFrameDefaults):
         self.column0.append(tk.Label(self,text="Theoretical Opacity:",**self.labelOptions))
         self.column0.append(tk.Label(self,text="Empirical Opacity:",**self.labelOptions))
 
-        self.column1.append(tk.Label(self,**self.longEntryOptions,\
+        self.column1.append(tk.Label(self,font=self.labelFont,width=20,anchor='w',\
                             textvariable=self.control.getTkVar('numericalOpacity')))
-        self.column1.append(tk.Label(self,**self.longEntryOptions,\
+        self.column1.append(tk.Label(self,font=self.labelFont,width=20,anchor='w',\
                             textvariable=self.control.getTkVar('theoreticalOpacity')))
-        self.column1.append(tk.Label(self,**self.longEntryOptions,\
+        self.column1.append(tk.Label(self,font=self.labelFont,width=20,anchor='w',\
                             textvariable=self.control.getTkVar('empiricalOpacity')))
 
 
     def __alignButtons__(self):
         self.grid_columnconfigure(0,minsize=50)
-        self.grid_columnconfigure(1,minsize=100)
+        self.grid_columnconfigure(1,minsize=150)
 
         self.grid_rowconfigure(0,minsize=30)
         self.grid_rowconfigure(1,minsize=20)

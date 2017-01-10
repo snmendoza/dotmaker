@@ -60,14 +60,13 @@ def get_theoretical_opacity(cell):
     s2 = s*s
     r2 = r*r
     if 2*r < s:
-        print("smaller")
         positive_opacity = math.pi*r2 / s2
-    else:
-        print("very big")
+    elif r < s*math.sqrt(1/2):
         segment_degrees   = 2*math.acos(s/(2*r))
         segment_area      = r2*(segment_degrees - math.sin(segment_degrees)) / 2
-        positive_opacity = (math.pi*r2 / 2 -2 * segment_area) / (s2 / 2)
-        print("segment_Area:" + str(segment_area))
+        positive_opacity = (math.pi*r2 / 2 - 2 * segment_area) / (s2 / 2)
+    else:
+        positive_opacity = 0
 
     if cell.p:
         return positive_opacity

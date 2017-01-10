@@ -39,8 +39,8 @@ class ModelControl:
             cellDicts = makeParameterCellSpaceDicts(document=documentDict,patterns=(pattern1,pattern2),\
                                         indepVars=independentVars)
             cellimg = model.createMultiPrintCell(cellDicts)
-            analysisString = (" Min: " + str(round(min(cellimg[1])*100,1)) + "%% Max: " + str(round(max(cellimg[1])*100,1)) + " %%",\
-                              " Min: " + str(round(min(cellimg[2])*100,1)) + "%% Max: " + str(round(max(cellimg[2])*100,1)) + " %%")
+            analysisString = (" Min: " + str(round(min(cellimg[1])*100,1)) + "%"+" Max: " + str(round(max(cellimg[1])*100,1)) + "%",\
+                              " Min: " + str(round(min(cellimg[2])*100,1)) + "%"+" Max: " + str(round(max(cellimg[2])*100,1)) + "%")
             self.params.setAnalysis(analysisString)
             self.display.updateCanvass(cellimg[0],"cell")
 
@@ -75,7 +75,9 @@ class ModelControl:
         pass
 
     def save(self):
-        return self.img.copy()
+        if self.img is not None:
+            return self.img.copy()
+        return None
 
 def anayze_unit_cell(params):
     unit_cell = model.unit_cell(get_normalized_vars(params))
@@ -114,9 +116,9 @@ def getXYChanges(param):
 
 def getXYSubDivisions(params):
     yunit = params["printHeight"] + params["printMargin"]
-    xunit = params["printWidth"] + params["printMargin"]
-    xdist = params["documentWidth"] + params["printMargin"]
-    ydist = params["documentHeight"] + params["printMargin"]
+    xunit = params["printWidth"]  + params["printMargin"]
+    xdist = params["documentWidth"]  - params["printMargin"]
+    ydist = params["documentHeight"] - params["printMargin"]
 
     return (int(ydist/yunit),int(xdist/xunit))
 
@@ -124,8 +126,8 @@ def getDocumentValues(params):
     documentDict=params['document']
     ureg = pint.UnitRegistry()
     documentValues=dict( \
-        printHeight=__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"]), \
-        printWidth=__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"]), \
+        printHeight=__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"]), \
+        printWidth=__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"]), \
         printMargin=__normalize(ureg,documentDict["printMargin"],documentDict["printUnit"]),\
         documentHeight=__normalize(ureg,documentDict["documentHeight"],documentDict["documentUnit"]),\
         documentWidth=__normalize(ureg,documentDict["documentWidth"],documentDict["documentUnit"]))
@@ -151,8 +153,8 @@ def normalizeSinglePattern(documentDict,patternDict):
         ureg = pint.UnitRegistry()
         px_cm_conversion = __normalize(ureg,patternDict["density"],documentDict["densityUnit"])
         default=dict( \
-            height=int(round(__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"])*px_cm_conversion,0)), \
-            width=int(round(__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"])*px_cm_conversion,0)), \
+            height=int(round(__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"])*px_cm_conversion,0)), \
+            width=int(round(__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"])*px_cm_conversion,0)), \
             separation=int(round(__normalize(ureg,patternDict["separation"],documentDict["circleUnit"])*px_cm_conversion,0)),\
             radius=int(round(__normalize(ureg,patternDict["radius"],documentDict["circleUnit"])*px_cm_conversion,0)),\
             is_positive=documentDict["printType"].get(),\
@@ -174,8 +176,8 @@ def normalizeDocument(parameters):
     documentDict=parameters['document']
     px_cm_conversion = __normalize(ureg,density,documentDict["densityUnit"])
     default=dict( \
-        documentHeight=int(round(__normalize(ureg,documentDict["documentWidth"],documentDict["documentUnit"])*px_cm_conversion,0)), \
-        documentWidth=int(round(__normalize(ureg,documentDict["documentHeight"],documentDict["documentUnit"])*px_cm_conversion,0)), \
+        documentHeight=int(round(__normalize(ureg,documentDict["documentHeight"],documentDict["documentUnit"])*px_cm_conversion,0)), \
+        documentWidth=int(round(__normalize(ureg,documentDict["documentWidth"],documentDict["documentUnit"])*px_cm_conversion,0)), \
         printHeight=int(round(__normalize(ureg,documentDict["printHeight"],documentDict["printUnit"])*px_cm_conversion,0)),\
         printWidth=int(round(__normalize(ureg,documentDict["printWidth"],documentDict["printUnit"])*px_cm_conversion,0)),\
         printMargin=int(round(__normalize(ureg,documentDict["printMargin"],documentDict["printUnit"])*px_cm_conversion,0)))

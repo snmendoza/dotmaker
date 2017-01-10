@@ -22,7 +22,7 @@ class SingleParamFrame(ParamFrameDefaults):
         #labels:
         self.column0.append(tk.Label(self, text="Print Parameters",font=self.bigFont))
         self.column0.append(tk.Label(self, text="Print Width:",**self.labelOptions))
-        self.column0.append(tk.Label(self, text="Print height:",**self.labelOptions))
+        self.column0.append(tk.Label(self, text="Print Height:",**self.labelOptions))
         self.column0.append(tk.Label(self, text="Dot Density:",**self.labelOptions))
 
         self.column3.append(tk.Label(self, text="Pattern Parameters",font=self.bigFont))
@@ -134,9 +134,9 @@ class MultiParamFrame(ParamFrameDefaults):
         self.column0.append(tk.Label(self, text="Document Parameters",font=self.bigFont))
         self.column0.append(tk.Label(self, text="Print Type:",**self.labelOptions))
         self.column0.append(tk.Label(self, text="Document Width:",**self.labelOptions))
-        self.column0.append(tk.Label(self, text="Document height:",**self.labelOptions))
+        self.column0.append(tk.Label(self, text="Document Height:",**self.labelOptions))
         self.column0.append(tk.Label(self, text="Print Width:",**self.labelOptions))
-        self.column0.append(tk.Label(self, text="Print height:",**self.labelOptions))
+        self.column0.append(tk.Label(self, text="Print Height:",**self.labelOptions))
         self.column0.append(tk.Label(self, text="Print Margin:",**self.labelOptions))
 
         self.column3.append(tk.Label(self, text="Print Parameters",font=self.bigFont))
