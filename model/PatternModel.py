@@ -59,18 +59,16 @@ def get_theoretical_opacity(cell):
     s = float(cell.s)
     s2 = s*s
     r2 = r*r
-    oct_area = s2/4
     if 2*r < s:
         print("smaller")
-        positive_opacity = 2*math.pi*r2 / (8*oct_area)
+        positive_opacity = math.pi*r2 / s2
     else:
         print("very big")
-        triangle_area    = (s/2) * math.sqrt(r2 - s2/4)
-        sector_degrees   = math.pi/4 - math.acos(s/(2*r))
-        sector_area      = r2*sector_degrees
-        positive_opacity = (triangle_area + 2*sector_area)/oct_area
-        print("triangle_area:" + str(triangle_area) + " sector degrees:" + str(math.degrees(sector_degrees)))
-        
+        segment_degrees   = 2*math.acos(s/(2*r))
+        segment_area      = r2*(segment_degrees - math.sin(segment_degrees)) / 2
+        positive_opacity = (math.pi*r2 / 2 -2 * segment_area) / (s2 / 2)
+        print("segment_Area:" + str(segment_area))
+
     if cell.p:
         return positive_opacity
     else:
