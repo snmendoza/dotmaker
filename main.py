@@ -1,6 +1,7 @@
 import sys
-from view_controller import controller_object
+from view.MainView import MainView
 
 def main():
-    program = controller_object()
+    program = MainView()
+    program.run()
 main()
