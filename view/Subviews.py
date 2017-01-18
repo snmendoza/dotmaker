@@ -50,7 +50,7 @@ class SingleParamFrame(ParamFrameDefaults):
                                   boundvar=[self.control.getDocumentKV("printHeight"),\
                                   self.control.getDocumentKV("printWidth")],\
                                   values=self.unitMenuOptions))
-        self.column2.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('densityUnit'),\
+        self.column2.append(self.control.makeInverseUnitMenu(self,basevar=self.control.getDocumentV('densityUnit'),\
                                   boundvar=[self.control.getPatternKV('density')],values=self.unitMenuOptions))
 
         buttons      = self.control.makeBooleanButtons(self,\
@@ -189,7 +189,7 @@ class MultiParamFrame(ParamFrameDefaults):
                                   boundvar=[self.control.getDocumentKV('printWidth'),self.control.getDocumentKV('printHeight'),\
                                         self.control.getDocumentKV('printMargin')],\
                                   values=self.unitMenuOptions))
-        self.column6.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('densityUnit'),\
+        self.column6.append(self.control.makeInverseUnitMenu(self,basevar=self.control.getDocumentV('densityUnit'),\
                                   boundvar=[self.control.getPatternKV(1,'density'),self.control.getPatternKV(2,'density')],\
                                   values=self.unitMenuOptions))
         self.column6.append(self.control.makeUnitMenu(self,basevar=self.control.getDocumentV('circleUnit'),\

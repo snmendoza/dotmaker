@@ -26,6 +26,14 @@ class WidgetVarIntegration:
         self.unitMenuControllers     = []
         self.booleanValueControllers = []
 
+    def makeInverseUnitMenu(self,frame,basevar=None,boundvar=None,values=None):
+        for entry in boundvar:
+            self.linkedVariables[entry[0]] = entry[1]
+
+        uControl = InverseUnitValueController(start=basevar,boundvar=boundvar)
+        self.unitMenuControllers.append(uControl)
+        return tk.OptionMenu(frame,basevar,*values,command=uControl.updateUnit)
+
     def makeUnitMenu(self,frame,basevar=None,boundvar=None,values=None):
         '''makes a unit menu based on a base tkvariable and desired bound fields
                 basevar= the base tkvariable
@@ -80,6 +88,28 @@ class UnitValueController:
             if self.variables[key].get() is not "":
                 self.variables[key].set(convert_unit(self.ureg,prevvar=self.variables[key],\
                 prevunit=self.startUnit,newunit=unit))
+
+        self.startUnit.set(unit)
+
+class InverseUnitValueController:
+    def __init__(self,start=None,boundvar=None):
+        self.ureg = pint.UnitRegistry()
+        self.variables = {}
+        for entry in boundvar:
+            self.variables[entry[0]] = entry[1]
+
+        self.startUnit = tk.StringVar()
+        self.startUnit.set(start.get())
+
+    def updateUnit(self,unit):
+        temp1 = tk.StringVar()
+        temp2 = tk.StringVar()
+        for key in self.variables.keys():
+            if self.variables[key].get() is not "":
+                temp1.set(str(1/float(self.variables[key].get())))
+                temp2.set(convert_unit(self.ureg,prevvar=temp1,\
+                prevunit=self.startUnit,newunit=unit))
+                self.variables[key].set(str(1/float(temp2.get())))
 
         self.startUnit.set(unit)
 
